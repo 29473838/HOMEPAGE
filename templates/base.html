@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}소리가 담긴 타임머신{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<audio id="bgMusic" autoplay loop>
+    <source src="{{ url_for('static', filename='assets/your_music.mp3') }}" type="audio/mpeg">
+</audio>
+
+<div class="sakura-container" id="sakuraContainer"></div>
+
+<nav>
+    <a href="{{ url_for('home') }}">소개</a>
+    <a href="{{ url_for('link_page') }}">링크</a>
+    <a href="{{ url_for('notice_list') }}">공지글</a>
+    <a href="{{ url_for('business_page') }}">비즈니스</a>
+    <a href="{{ url_for('contact_page') }}">문의</a>
+
+    <span class="nav-right">
+        {% if user %}
+            <span class="nav-user">👤 {{ user }}</span>
+            <a href="{{ url_for('logout') }}">로그아웃</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">로그인</a>
+        {% endif %}
+    </span>
+</nav>
+
+{% block body %}{% endblock %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

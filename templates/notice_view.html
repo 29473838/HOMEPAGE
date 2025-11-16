@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ notice.title }} - 공지사항{% endblock %}
+{% block body %}
+
+<div class="page-title">{{ notice.title }}</div>
+
+<div class="notice-view">
+    <div class="meta">
+        작성자: {{ notice.author }} | {{ notice.created_at }}
+        {% if role == 'admin' %}
+            <span class="meta-actions">
+                <a href="{{ url_for('notice_edit', notice_id=notice.id) }}">수정</a> |
+                <a href="{{ url_for('notice_delete', notice_id=notice.id) }}">삭제</a>
+            </span>
+        {% endif %}
+    </div>
+    <div class="notice-content">
+        {% if notice.image_path %}
+            <img src="{{ notice.image_path }}" alt="공지 이미지" class="notice-image">
+        {% endif %}
+        <p>{{ notice.content }}</p>
+    </div>
+</div>
+
+<hr>
+
+<h3>댓글</h3>
+
+<div class="comment-list">
+    {% for c in comments %}
+    <div class="comment-item">
+        <div class="comment-meta">
+            <strong>{{ c.username }}</strong> · {{ c.created_at }}
+        </div>
+        <div class="comment-body">{{ c.comment }}</div>
+    </div>
+    {% else %}
+    <p>첫 댓글을 작성해보세요.</p>
+    {% endfor %}
+</div>
+
+{% if user %}
+<form method="POST" class="comment-form">
+    <textarea name="comment" placeholder="댓글을 입력하세요." required></textarea>
+    <button type="submit" class="btn-primary">댓글 등록</button>
+</form>
+{% else %}
+<p>댓글을 작성하려면 <a href="{{ url_for('login') }}">로그인</a> 해주세요.</p>
+{% endif %}
+
+{% endblock %}
