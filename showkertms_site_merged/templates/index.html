@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}소개 - 소리가 담긴 타임머신{% endblock %}
+{% block body %}
+
+<div class="title-wrapper" id="titleWrapper">
+    <img src="{{ url_for('static', filename='assets/title_image.png') }}" alt="타이틀 이미지" class="title-image">
+    <div class="title">소리가 담긴 타임머신</div>
+</div>
+
+<div class="intro-wrapper">
+
+    <div class="intro-section">
+        <div class="photo" style="background-image: url('{{ url_for('static', filename='assets/your_photo.png') }}');"></div>
+        <div class="chapter">
+            <div class="chapter-text">안녕하세요! 저는 음악과 시간을 사랑하는 사람입니다.</div>
+        </div>
+    </div>
+
+    <div class="intro-section">
+        <div class="photo" style="background-image: url('{{ url_for('static', filename='assets/your_photo.png') }}');"></div>
+        <div class="chapter">
+            <div class="chapter-text">이 페이지는 저의 여정을 기록하고 소개하는 공간입니다.</div>
+        </div>
+    </div>
+
+    <div class="intro-section">
+        <div class="photo" style="background-image: url('{{ url_for('static', filename='assets/your_photo.png') }}');"></div>
+        <div class="chapter">
+            <div class="chapter-text">스크롤을 내려가며 제 이야기를 차근차근 만나보세요.</div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
