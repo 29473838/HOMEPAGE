@@ -17,7 +17,16 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+# Database 설정: Render PostgreSQL (DATABASE_URL) 사용, 없으면 로컬 SQLite 사용
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    # Render / Heroku 스타일 postgres:// 를 postgresql:// 로 보정
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+else:
+    db_url = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Mail (Gmail SMTP 예시)
@@ -447,6 +456,12 @@ def register():
 
 
 # 정적 파일 (음악, 이미지 등) - 기본 static 사용
+
+# --- 앱 시작 시 한 번만 테이블 자동 생성 (Render / gunicorn 포함) ---
+with app.app_context():
+    db.create_all()
+
+
 
 if __name__ == "__main__":
     with app.app_context():
