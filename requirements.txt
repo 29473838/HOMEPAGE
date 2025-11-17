@@ -3,3 +3,6 @@ flask_sqlalchemy
 flask_login
 flask_mail
 gunicorn
+psycopg2-binary
+werkzeug
+python-dotenv
