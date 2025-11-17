@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}프로필{% endblock %}
+
+{% block content %}
+<h1 class="page-title">프로필 설정</h1>
+<div class="card">
+    <p>
+        현재 닉네임 :
+        <span class="nickname-label" style="background: {{ current_user.display_color }};">
+            {{ current_user.username }}
+        </span>
+        <span style="font-size:12px;color:#666;"> (직급: {{ current_user.role }})</span>
+    </p>
+    <form method="post">
+        <label>닉네임 변경</label>
+        <input type="text" name="username" value="{{ current_user.username }}">
+
+        <label>닉네임 색상</label>
+        <input type="color" name="display_color" value="{{ current_user.display_color }}">
+
+        <button type="submit" class="btn">저장</button>
+    </form>
+</div>
+{% endblock %}

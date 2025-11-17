@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}공지 - {{ notice.title }}{% endblock %}
+
+{% block content %}
+<h1 class="page-title">{{ notice.title }}</h1>
+<div class="card">
+    <div style="font-size:12px;color:#666;">{{ notice.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
+    <div style="margin-top:10px;">{{ notice.content|safe }}</div>
+</div>
+
+{% if has_permission(current_user, 'notice_write') %}
+<form method="post" action="{{ url_for('notice_delete', notice_id=notice.id) }}" onsubmit="return confirm('삭제하시겠습니까?');">
+    <a href="{{ url_for('notice_edit', notice_id=notice.id) }}" class="btn">수정</a>
+    <button type="submit" class="btn" style="background:#e74c3c;">삭제</button>
+</form>
+{% endif %}
+
+<h2 class="page-title" style="font-size:22px;margin-top:30px;">댓글</h2>
+<div class="card">
+    {% for c in comments %}
+        <div style="margin-bottom:10px;">
+            <strong>{{ c.author_id }}</strong> :
+            <span>{{ c.content }}</span>
+            <span style="font-size:11px;color:#888;"> ({{ c.created_at.strftime("%Y-%m-%d %H:%M") }})</span>
+        </div>
+    {% else %}
+        <p>댓글이 없습니다.</p>
+    {% endfor %}
+
+    {% if current_user.is_authenticated %}
+    <form method="post" style="margin-top:15px;">
+        <textarea name="content" placeholder="댓글을 입력하세요"></textarea>
+        <button type="submit" class="btn">댓글 등록</button>
+    </form>
+    {% else %}
+        <p style="font-size:13px;color:#555;">댓글 작성은 <a href="{{ url_for('login') }}">로그인</a> 후 가능합니다.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}문의 관리{% endblock %}
+
+{% block content %}
+<h1 class="page-title">문의 관리</h1>
+{% for t in tickets %}
+<div class="card">
+    <div><strong>[{{ t.category }}]</strong> {{ t.subject }}</div>
+    <div style="font-size:12px;color:#666;">{{ t.created_at.strftime("%Y-%m-%d %H:%M") }} / {{ t.email_reply_to }}</div>
+    <div style="font-size:13px;color:#444;margin-top:6px;">{{ t.content[:120] }}...</div>
+    <a href="{{ url_for('admin_contact_detail', ticket_id=t.id) }}" class="btn" style="margin-top:8px;">상세 / 답변</a>
+</div>
+{% else %}
+<p>문의가 없습니다.</p>
+{% endfor %}
+{% endblock %}

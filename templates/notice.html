@@ -1,28 +1,19 @@
 {% extends "base.html" %}
-{% block title %}공지사항 - 소리가 담긴 타임머신{% endblock %}
-{% block body %}
+{% block title %}ShowkerTMS - 공지글{% endblock %}
 
-<div class="page-title">공지사항</div>
-
-{% if role == 'admin' %}
-    <div class="notice-actions">
-        <a href="{{ url_for('notice_write') }}" class="btn-primary">+ 새 공지 작성</a>
-    </div>
+{% block content %}
+<h1 class="page-title">공지사항</h1>
+{% if has_permission(current_user, 'notice_write') %}
+    <a href="{{ url_for('notice_new') }}" class="btn">새 공지 작성</a>
 {% endif %}
-
-<ul class="notice-list">
-    {% for n in notices %}
-    <li>
-        <a href="{{ url_for('notice_view', notice_id=n.id) }}">
-            <strong>{{ n.title }}</strong>
-        </a>
-        <div class="meta">
-            작성자: {{ n.author }} | {{ n.created_at }}
-        </div>
-    </li>
-    {% else %}
-    <li>작성된 공지가 없습니다.</li>
-    {% endfor %}
-</ul>
-
+<br><br>
+{% for n in notices %}
+<div class="card">
+    <h3>{{ n.title }}</h3>
+    <div style="font-size:12px;color:#666;">{{ n.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
+    <a href="{{ url_for('notice_detail', notice_id=n.id) }}" class="link-btn" style="margin-top:10px;">자세히 보기</a>
+</div>
+{% else %}
+<p>등록된 공지글이 없습니다.</p>
+{% endfor %}
 {% endblock %}

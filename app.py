@@ -1,293 +1,454 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+import os
+from datetime import datetime, timedelta
+
+from flask import (
+    Flask, render_template, redirect, url_for,
+    request, flash, abort, send_from_directory
+)
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager, login_user, logout_user,
+    current_user, login_required, UserMixin
+)
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-import sqlite3, os, datetime
+from flask_mail import Mail, Message
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-app.secret_key = "CHANGE_THIS_TO_SOMETHING_RANDOM"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 업로드 폴더 (공지 이미지용)
-UPLOAD_FOLDER = os.path.join("static", "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# Mail (Gmail SMTP 예시)
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME", "your_gmail@gmail.com")
+app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD", "your_app_password")
+app.config["MAIL_DEFAULT_SENDER"] = app.config["MAIL_USERNAME"]
+
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+mail = Mail(app)
+
+# ---------- 권한/직급 ----------
+ROLE_USER = "user"
+ROLE_STAFF = "staff"
+ROLE_MANAGER = "manager"
+ROLE_VICE = "vice"
+ROLE_OWNER = "owner"
+
+ROLE_CHOICES = [ROLE_USER, ROLE_STAFF, ROLE_MANAGER, ROLE_VICE, ROLE_OWNER]
+
+# 권한 맵
+PERMISSIONS = {
+    ROLE_USER: {
+        "notice_write": False,
+        "warning_manage": False,
+        "comment_delete": False,
+        "profile_force_edit": False,
+        "suspend": False,
+        "promote": False,
+        "contact_reply": False,
+    },
+    ROLE_STAFF: {
+        "notice_write": True,
+        "warning_manage": False,
+        "comment_delete": False,
+        "profile_force_edit": False,
+        "suspend": False,
+        "promote": False,
+        "contact_reply": True,
+    },
+    ROLE_MANAGER: {
+        "notice_write": True,
+        "warning_manage": True,
+        "comment_delete": True,
+        "profile_force_edit": True,
+        "suspend": True,
+        "promote": False,
+        "contact_reply": True,
+    },
+    ROLE_VICE: {
+        "notice_write": True,
+        "warning_manage": True,
+        "comment_delete": True,
+        "profile_force_edit": True,
+        "suspend": True,
+        "promote": True,
+        "contact_reply": True,
+    },
+    ROLE_OWNER: {
+        "notice_write": True,
+        "warning_manage": True,
+        "comment_delete": True,
+        "profile_force_edit": True,
+        "suspend": True,
+        "promote": True,
+        "contact_reply": True,
+    },
+}
+
+def has_permission(user, perm):
+    if not user:
+        return False
+    role = user.role or ROLE_USER
+    return PERMISSIONS.get(role, PERMISSIONS[ROLE_USER]).get(perm, False)
+
+# ---------- Models ----------
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default=ROLE_USER)
+    display_color = db.Column(db.String(20), default="#ffffff")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    warnings = db.relationship("Warning", backref="target", foreign_keys="Warning.target_user_id")
+    suspensions = db.relationship("Suspension", backref="target", foreign_keys="Suspension.target_user_id")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_suspended(self):
+        now = datetime.utcnow()
+        for s in self.suspensions:
+            if s.is_active and (s.permanent or (s.until and s.until > now)):
+                return True
+        return False
 
 
-# ===================== DB 연결/초기화 =====================
-def get_db():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+class Notice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)   # HTML 허용
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-def init_db():
-    conn = get_db()
-    c = conn.cursor()
-
-    # 유저 테이블 (role: 'admin' / 'user')
-    c.execute(
-        """
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT,
-            role TEXT
-        )
-        """
-    )
-
-    # 공지 테이블
-    c.execute(
-        """
-        CREATE TABLE IF NOT EXISTS notices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            content TEXT,
-            image_path TEXT,
-            author TEXT,
-            created_at TEXT
-        )
-        """
-    )
-
-    # 댓글 테이블
-    c.execute(
-        """
-        CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            notice_id INTEGER,
-            username TEXT,
-            comment TEXT,
-            created_at TEXT
-        )
-        """
-    )
-
-    # 기본 관리자 계정 생성
-    c.execute("SELECT * FROM users WHERE username = ?", ("admin",))
-    if not c.fetchone():
-        c.execute(
-            "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-            ("admin", generate_password_hash("admin123"), "admin"),
-        )
-
-    conn.commit()
-    conn.close()
+class NoticeComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    notice_id = db.Column(db.Integer, db.ForeignKey("notice.id"))
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_deleted = db.Column(db.Boolean, default=False)
 
 
-init_db()
+class Warning(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    target_user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    given_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    reason = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    revoked = db.Column(db.Boolean, default=False)
 
 
-# ===================== 유틸 =====================
-def current_user():
-    return session.get("username")
+class Suspension(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    target_user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    given_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    reason = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    until = db.Column(db.DateTime, nullable=True)
+    permanent = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
 
 
-def current_role():
-    return session.get("role")
+class ContactTicket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    category = db.Column(db.String(50), nullable=False)
+    email_reply_to = db.Column(db.String(120), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default="open")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    replies = db.relationship("ContactReply", backref="ticket", lazy=True)
 
 
-# ===================== 기본 페이지들 =====================
+class ContactReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey("contact_ticket.id"))
+    admin_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class QnaPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# ---------- Login ----------
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# ---------- Helpers ----------
+def send_reply_email(to_email, subject, body):
+    try:
+        msg = Message(subject=subject, recipients=[to_email])
+        msg.body = body
+        mail.send(msg)
+    except Exception as e:
+        # Render 환경에서 메일이 막혀있을 수 있으므로 실패해도 앱은 계속 동작
+        print("Email send failed:", e)
+
+
+# ---------- Routes ----------
+
 @app.route("/")
-def home():
-    return render_template("index.html", user=current_user(), role=current_role())
+def index():
+    return render_template("index.html")
 
 
 @app.route("/link")
 def link_page():
-    return render_template("link.html", user=current_user(), role=current_role())
+    return render_template("link.html")
 
 
 @app.route("/business")
 def business_page():
-    return render_template("business.html", user=current_user(), role=current_role())
+    return render_template("business.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact_page():
-    return render_template("contact.html", user=current_user(), role=current_role())
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("문의 작성은 로그인 후 이용 가능합니다.", "danger")
+            return redirect(url_for("login"))
+        email_reply_to = request.form.get("email_reply_to")
+        category = request.form.get("category") or "기타"
+        subject = request.form.get("subject")
+        content = request.form.get("content")
+
+        ticket = ContactTicket(
+            user_id=current_user.id,
+            category=category,
+            email_reply_to=email_reply_to,
+            subject=subject,
+            content=content
+        )
+        db.session.add(ticket)
+        db.session.commit()
+        flash("문의가 접수되었습니다.", "success")
+        return redirect(url_for("contact_page"))
+    return render_template("contact.html")
 
 
-# ===================== 로그인 / 로그아웃 / 회원가입 =====================
+@app.route("/notice")
+def notice_list():
+    notices = Notice.query.order_by(Notice.created_at.desc()).all()
+    return render_template("notice.html", notices=notices)
+
+
+@app.route("/notice/<int:notice_id>", methods=["GET", "POST"])
+def notice_detail(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    comments = NoticeComment.query.filter_by(notice_id=notice.id).order_by(NoticeComment.created_at.asc()).all()
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("댓글 작성은 로그인 후 이용 가능합니다.", "danger")
+            return redirect(url_for("login"))
+        content = request.form.get("content")
+        if content:
+            c = NoticeComment(notice_id=notice.id, author_id=current_user.id, content=content)
+            db.session.add(c)
+            db.session.commit()
+            flash("댓글이 등록되었습니다.", "success")
+        return redirect(url_for("notice_detail", notice_id=notice.id))
+    return render_template("notice_detail.html", notice=notice, comments=comments)
+
+
+@app.route("/notice/new", methods=["GET", "POST"])
+@login_required
+def notice_new():
+    if not has_permission(current_user, "notice_write"):
+        abort(403)
+    if request.method == "POST":
+        title = request.form.get("title")
+        content = request.form.get("content")  # HTML
+        if not title or not content:
+            flash("제목과 내용을 입력해주세요.", "danger")
+        else:
+            n = Notice(title=title, content=content, author_id=current_user.id)
+            db.session.add(n)
+            db.session.commit()
+            flash("공지글이 등록되었습니다.", "success")
+            return redirect(url_for("notice_list"))
+    return render_template("notice_form.html")
+
+
+@app.route("/notice/<int:notice_id>/edit", methods=["GET", "POST"])
+@login_required
+def notice_edit(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    if not has_permission(current_user, "notice_write"):
+        abort(403)
+    if request.method == "POST":
+        notice.title = request.form.get("title")
+        notice.content = request.form.get("content")
+        db.session.commit()
+        flash("공지글이 수정되었습니다.", "success")
+        return redirect(url_for("notice_detail", notice_id=notice.id))
+    return render_template("notice_form.html", notice=notice)
+
+
+@app.route("/notice/<int:notice_id>/delete", methods=["POST"])
+@login_required
+def notice_delete(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    if not has_permission(current_user, "notice_write"):
+        abort(403)
+    db.session.delete(notice)
+    db.session.commit()
+    flash("공지글이 삭제되었습니다.", "success")
+    return redirect(url_for("notice_list"))
+
+
+@app.route("/admin/contact")
+@login_required
+def admin_contact_list():
+    if not has_permission(current_user, "contact_reply"):
+        abort(403)
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).all()
+    return render_template("admin_contact.html", tickets=tickets)
+
+
+@app.route("/admin/contact/<int:ticket_id>", methods=["GET", "POST"])
+@login_required
+def admin_contact_detail(ticket_id):
+    if not has_permission(current_user, "contact_reply"):
+        abort(403)
+    ticket = ContactTicket.query.get_or_404(ticket_id)
+    if request.method == "POST":
+        reply_content = request.form.get("reply")
+        if reply_content:
+            r = ContactReply(ticket_id=ticket.id, admin_id=current_user.id, content=reply_content)
+            ticket.status = "answered"
+            db.session.add(r)
+            db.session.commit()
+            # 이메일 발송
+            send_reply_email(
+                ticket.email_reply_to,
+                f"[ShowkerTMS 문의답변] {ticket.subject}",
+                reply_content
+            )
+            flash("답변이 등록되고 이메일이 발송되었습니다.(실패 시 로그 확인)", "success")
+        return redirect(url_for("admin_contact_detail", ticket_id=ticket.id))
+    return render_template("admin_contact_detail.html", ticket=ticket)
+
+
+@app.route("/qna", methods=["GET", "POST"])
+def qna_list():
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("QnA 작성은 로그인 후 이용 가능합니다.", "danger")
+            return redirect(url_for("login"))
+        title = request.form.get("title")
+        content = request.form.get("content")
+        if title and content:
+            q = QnaPost(user_id=current_user.id, title=title, content=content)
+            db.session.add(q)
+            db.session.commit()
+            flash("QnA가 등록되었습니다.", "success")
+            return redirect(url_for("qna_list"))
+    posts = QnaPost.query.order_by(QnaPost.created_at.desc()).all()
+    return render_template("qna.html", posts=posts)
+
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    if not has_permission(current_user, "warning_manage") and not has_permission(current_user, "promote"):
+        abort(403)
+    users = User.query.order_by(User.created_at.desc()).all()
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).limit(5).all()
+    return render_template("dashboard.html", users=users, tickets=tickets)
+
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == "POST":
+        username = request.form.get("username")
+        color = request.form.get("display_color")
+        if username:
+            current_user.username = username
+        if color:
+            current_user.display_color = color
+        db.session.commit()
+        flash("프로필이 수정되었습니다.", "success")
+        return redirect(url_for("profile"))
+    return render_template("profile.html")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-
-        conn = get_db()
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username = ?", (username,))
-        user = c.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user["password"], password):
-            session["username"] = user["username"]
-            session["role"] = user["role"]
-            return redirect(url_for("notice_list"))
+        email = request.form.get("email")
+        password = request.form.get("password")
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            if user.is_suspended:
+                flash("정지된 계정입니다.", "danger")
+                return redirect(url_for("login"))
+            login_user(user)
+            flash("로그인되었습니다.", "success")
+            next_url = request.args.get("next") or url_for("index")
+            return redirect(next_url)
         else:
-            return render_template("login.html", error="아이디 또는 비밀번호가 올바르지 않습니다.")
-
+            flash("이메일 또는 비밀번호가 올바르지 않습니다.", "danger")
     return render_template("login.html")
 
 
 @app.route("/logout")
+@login_required
 def logout():
-    session.clear()
-    return redirect(url_for("home"))
+    logout_user()
+    flash("로그아웃되었습니다.", "success")
+    return redirect(url_for("index"))
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
+        email = request.form.get("email")
+        username = request.form.get("username")
+        password = request.form.get("password")
 
-        if not username or not password:
-            return render_template("register.html", error="아이디와 비밀번호를 입력해주세요.")
-
-        conn = get_db()
-        c = conn.cursor()
-        try:
-            c.execute(
-                "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                (username, generate_password_hash(password), "user"),
-            )
-            conn.commit()
-        except sqlite3.IntegrityError:
-            conn.close()
-            return render_template("register.html", error="이미 존재하는 아이디입니다.")
-        conn.close()
-        return redirect(url_for("login"))
-
+        if User.query.filter((User.email == email) | (User.username == username)).first():
+            flash("이미 사용 중인 이메일 또는 닉네임입니다.", "danger")
+        else:
+            u = User(email=email, username=username, role=ROLE_USER)
+            u.set_password(password)
+            db.session.add(u)
+            db.session.commit()
+            flash("회원가입이 완료되었습니다. 로그인해주세요.", "success")
+            return redirect(url_for("login"))
     return render_template("register.html")
 
 
-# ===================== 공지사항 =====================
-@app.route("/notice")
-def notice_list():
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT * FROM notices ORDER BY id DESC")
-    notices = c.fetchall()
-    conn.close()
-    return render_template("notice.html", notices=notices, user=current_user(), role=current_role())
-
-
-@app.route("/notice/write", methods=["GET", "POST"])
-def notice_write():
-    if current_role() != "admin":
-        return "권한이 없습니다. (관리자 전용)", 403
-
-    if request.method == "POST":
-        title = request.form["title"].strip()
-        content = request.form["content"].strip()
-        image_path = None
-
-        file = request.files.get("image")
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(save_path)
-            image_path = "/static/uploads/" + filename
-
-        conn = get_db()
-        c = conn.cursor()
-        c.execute(
-            """
-            INSERT INTO notices (title, content, image_path, author, created_at)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                title,
-                content,
-                image_path,
-                current_user(),
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            ),
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for("notice_list"))
-
-    return render_template("notice_write.html", user=current_user(), role=current_role())
-
-
-@app.route("/notice/<int:notice_id>", methods=["GET", "POST"])
-def notice_view(notice_id):
-    conn = get_db()
-    c = conn.cursor()
-
-    if request.method == "POST":
-        if not current_user():
-            conn.close()
-            return "댓글 작성은 로그인 후 가능합니다.", 403
-        comment_text = request.form["comment"].strip()
-        if comment_text:
-            c.execute(
-                """
-                INSERT INTO comments (notice_id, username, comment, created_at)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    notice_id,
-                    current_user(),
-                    comment_text,
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                ),
-            )
-            conn.commit()
-
-    c.execute("SELECT * FROM notices WHERE id = ?", (notice_id,))
-    notice = c.fetchone()
-
-    c.execute("SELECT * FROM comments WHERE notice_id = ? ORDER BY id DESC", (notice_id,))
-    comments = c.fetchall()
-
-    conn.close()
-    return render_template(
-        "notice_view.html",
-        notice=notice,
-        comments=comments,
-        user=current_user(),
-        role=current_role(),
-    )
-
-
-@app.route("/notice/<int:notice_id>/delete")
-def notice_delete(notice_id):
-    if current_role() != "admin":
-        return "권한이 없습니다.", 403
-
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("DELETE FROM notices WHERE id = ?", (notice_id,))
-    c.execute("DELETE FROM comments WHERE notice_id = ?", (notice_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("notice_list"))
-
-
-@app.route("/notice/<int:notice_id>/edit", methods=["GET", "POST"])
-def notice_edit(notice_id):
-    if current_role() != "admin":
-        return "권한이 없습니다.", 403
-
-    conn = get_db()
-    c = conn.cursor()
-
-    if request.method == "POST":
-        title = request.form["title"].strip()
-        content = request.form["content"].strip()
-        c.execute("UPDATE notices SET title=?, content=? WHERE id=?", (title, content, notice_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for("notice_view", notice_id=notice_id))
-
-    c.execute("SELECT * FROM notices WHERE id = ?", (notice_id,))
-    notice = c.fetchone()
-    conn.close()
-    return render_template("notice_edit.html", notice=notice, user=current_user(), role=current_role())
-
+# 정적 파일 (음악, 이미지 등) - 기본 static 사용
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, host="0.0.0.0", port=5000)

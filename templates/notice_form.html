@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}공지 작성/수정{% endblock %}
+
+{% block content %}
+<h1 class="page-title">공지 작성/수정</h1>
+<div class="card">
+<form method="post">
+    <label>제목</label>
+    <input type="text" name="title" value="{{ notice.title if notice else '' }}">
+
+    <label>내용 (HTML 가능)</label>
+    <textarea name="content">{{ notice.content if notice else '' }}</textarea>
+
+    <button type="submit" class="btn">저장</button>
+</form>
+</div>
+{% endblock %}

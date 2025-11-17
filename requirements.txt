@@ -1,3 +1,5 @@
 flask
-werkzeug
+flask_sqlalchemy
+flask_login
+flask_mail
 gunicorn

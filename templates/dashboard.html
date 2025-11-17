@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}관리자 대시보드{% endblock %}
+
+{% block content %}
+<h1 class="page-title">관리자 대시보드</h1>
+
+<div class="card">
+    <h3>최근 가입 유저</h3>
+    <table style="width:100%;font-size:14px;border-collapse:collapse;">
+        <tr style="border-bottom:1px solid #ddd;">
+            <th align="left">ID</th>
+            <th align="left">닉네임</th>
+            <th align="left">직급</th>
+            <th align="left">이메일</th>
+            <th align="left">가입일</th>
+        </tr>
+        {% for u in users %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h3>최근 문의</h3>
+    {% for t in tickets %}
+        <div style="margin-bottom:8px;">
+            <strong>[{{ t.category }}]</strong> {{ t.subject }}
+            <span style="font-size:11px;color:#777;"> / {{ t.status }}</span>
+        </div>
+    {% else %}
+        <p>문의가 없습니다.</p>
+    {% endfor %}
+</div>
+{% endblock %}

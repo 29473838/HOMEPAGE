@@ -1,18 +1,15 @@
 {% extends "base.html" %}
-{% block title %}로그인 - 소리가 담긴 타임머신{% endblock %}
-{% block body %}
+{% block title %}로그인{% endblock %}
 
-<div class="center-card">
-    <h2>로그인</h2>
-    <form method="POST">
-        <input type="text" name="username" placeholder="아이디" required>
-        <input type="password" name="password" placeholder="비밀번호" required>
-        {% if error %}<div class="error">{{ error }}</div>{% endif %}
-        <button type="submit" class="btn-primary">로그인</button>
-    </form>
-    <div class="sub-links">
-        <a href="{{ url_for('register') }}">회원가입</a>
-    </div>
+{% block content %}
+<h1 class="page-title">로그인</h1>
+<div class="card">
+<form method="post">
+    <label>이메일</label>
+    <input type="email" name="email" required>
+    <label>비밀번호</label>
+    <input type="password" name="password" required>
+    <button type="submit" class="btn">로그인</button>
+</form>
 </div>
-
 {% endblock %}
