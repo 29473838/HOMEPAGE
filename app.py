@@ -297,3 +297,39 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+# --- Simple page routes for static content pages ---
+
+
+@app.route("/link")
+def link_page():
+    """링크 모음 페이지"""
+    return render_template("link.html")
+
+
+@app.route("/business")
+def business_page():
+    """비즈니스 문의 안내 페이지"""
+    return render_template("business.html")
+
+
+@app.route("/contact")
+def contact_page():
+    """일반 문의 페이지"""
+    return render_template("contact.html")
+
+
+@app.route("/profile")
+@login_required
+def profile():
+    """사용자 프로필 페이지"""
+    return render_template("profile.html")
+
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """관리자/스태프 대시보드 페이지"""
+    # 기본 버전: 템플릿만 렌더링
+    return render_template("dashboard.html")
