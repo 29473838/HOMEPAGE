@@ -454,6 +454,22 @@ def register():
             return redirect(url_for("login"))
     return render_template("register.html")
 
+@app.context_processor
+def inject_permission_checker():
+    def has_permission(user, permission):
+        if not user or not hasattr(user, "role"):
+            return False
+        if user.role is None:
+            return False
+        # user.role.permissions 는 JSON 또는 콤마 구분 문자열로 저장됨
+        if isinstance(user.role.permissions, list):
+            return permission in user.role.permissions
+        if isinstance(user.role.permissions, str):
+            return permission in user.role.permissions.split(",")
+        return False
+
+    return dict(has_permission=has_permission)
+
 
 # 정적 파일 (음악, 이미지 등) - 기본 static 사용
 
