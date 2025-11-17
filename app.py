@@ -219,6 +219,22 @@ def send_reply_email(to_email, subject, body):
         # Render 환경에서 메일이 막혀있을 수 있으므로 실패해도 앱은 계속 동작
         print("Email send failed:", e)
 
+@app.context_processor
+def inject_permission_checker():
+    def has_permission(user, permission):
+        if not user or not hasattr(user, "role"):
+            return False
+        if user.role is None:
+            return False
+        # user.role.permissions 는 JSON 또는 콤마 구분 문자열로 저장됨
+        if isinstance(user.role.permissions, list):
+            return permission in user.role.permissions
+        if isinstance(user.role.permissions, str):
+            return permission in user.role.permissions.split(",")
+        return False
+
+    return dict(has_permission=has_permission)
+
 
 # ---------- Routes ----------
 
