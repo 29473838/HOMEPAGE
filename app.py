@@ -290,6 +290,29 @@ def admin():
     return render_template("admin.html")
 
 
+@app.route("/init_db")
+def init_db():
+    db.drop_all()
+    db.create_all()
+
+    # 기본 역할 생성
+    roles = [
+        ("대표", "notice_write,warning_manage,promote,ban_user,answer_qna,delete_comment"),
+        ("부대표", "notice_write,warning_manage,promote,ban_user,answer_qna,delete_comment"),
+        ("매니저", "notice_write,warning_manage,answer_qna,delete_comment"),
+        ("직원", "notice_write,answer_qna"),
+        ("일반", "")
+    ]
+
+    for name, perms in roles:
+        if not Role.query.filter_by(name=name).first():
+            db.session.add(Role(name=name, permissions=perms))
+    
+    db.session.commit()
+
+    return "DB 초기화 및 기본 Role 생성 완료!"
+
+
 # ==============================================
 #  실행
 # ==============================================
