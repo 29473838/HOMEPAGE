@@ -277,8 +277,8 @@ textarea {
 
 /* 떨어짐: 위에서 아래로 */
 @keyframes fall {
-    0% { transform: translateY(-20px); }
-    100% { transform: translateY(110vh); }
+    0% { transform: translateY(110vh); }
+    100% { transform: translateY(-20px); }
 }
 
 /* 좌우 흔들림 */
