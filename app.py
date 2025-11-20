@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 # -------------------------------------------
-#  Flask 설정
+# Flask 설정
 # -------------------------------------------
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
@@ -29,15 +29,19 @@ login_manager.login_view = "login"
 
 
 # ==============================================
-#  DB 모델
+# DB 모델 (테이블명 명시 수정)
 # ==============================================
 class Role(db.Model):
+    __tablename__ = "roles"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    permissions = db.Column(db.String(500))  # permission1,permission2 형식
+    permissions = db.Column(db.String(500))  # 예: "notice_write,warning_manage"
 
 
 class User(db.Model, UserMixin):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
     email = db.Column(db.String(100))
@@ -50,16 +54,20 @@ class User(db.Model, UserMixin):
 
 
 class Notice(db.Model):
+    __tablename__ = "notices"
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
-    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class QNA(db.Model):
+    __tablename__ = "qna"
+
     id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     email = db.Column(db.String(100))
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
@@ -69,7 +77,7 @@ class QNA(db.Model):
 
 
 # ==============================================
-#  로그인 로드
+# 로그인 로드
 # ==============================================
 @login_manager.user_loader
 def load_user(user_id):
@@ -77,7 +85,7 @@ def load_user(user_id):
 
 
 # ==============================================
-#  권한 체크 (완전 수정된 안정 버전)
+# 권한 체크 (수정된 안정 버전)
 # ==============================================
 @app.context_processor
 def inject_permission_checker():
@@ -85,36 +93,19 @@ def inject_permission_checker():
         if not user or not hasattr(user, "role"):
             return False
 
-        user_role = user.role
+        role_obj = Role.query.filter_by(name=user.role).first()
 
-        # --- role 이 문자열이면 Role 테이블에서 객체 가져옴 ---
-        if isinstance(user_role, str):
-            role_obj = Role.query.filter_by(name=user_role).first()
-            if not role_obj:
-                return False
-            user_role = role_obj
-
-        # --- Role 객체 없으면 False ---
-        if user_role is None:
+        if not role_obj or not role_obj.permissions:
             return False
 
-        perms = user_role.permissions
-
-        # 리스트 형태
-        if isinstance(perms, list):
-            return permission in perms
-
-        # 콤마 문자열
-        if isinstance(perms, str):
-            return permission in perms.split(",")
-
-        return False
+        perms = role_obj.permissions.split(",")
+        return permission in perms
 
     return dict(has_permission=has_permission)
 
 
 # ==============================================
-#  이메일 발송
+# 이메일 발송
 # ==============================================
 def send_email(to_email, title, message):
     gmail_id = os.environ.get("GMAIL_EMAIL")
@@ -141,11 +132,12 @@ def send_email(to_email, title, message):
 
 
 # ==============================================
-#  라우팅
+# 라우팅
 # ==============================================
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/link")
 def link_page():
@@ -172,7 +164,6 @@ def profile():
 @login_required
 def dashboard():
     return render_template("dashboard.html")
-
 
 
 # ---- 회원가입 ----
@@ -230,7 +221,7 @@ def logout():
 
 
 # ==============================================
-#  공지사항
+# 공지사항
 # ==============================================
 @app.route("/notice")
 def notice_list():
@@ -241,17 +232,8 @@ def notice_list():
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
 def notice_write():
-    # 권한 체크
-    from flask import abort
-
-    def has_perm():
-        user_role = current_user.role
-        role_obj = Role.query.filter_by(name=user_role).first()
-        if not role_obj:
-            return False
-        return "notice_write" in role_obj.permissions.split(",")
-
-    if not has_perm():
+    # 권한: notice_write
+    if not inject_permission_checker()["has_permission"](current_user, "notice_write"):
         abort(403)
 
     if request.method == "POST":
@@ -267,7 +249,7 @@ def notice_write():
 
 
 # ==============================================
-#  QNA 게시판
+# QNA
 # ==============================================
 @app.route("/qna")
 def qna_list():
@@ -302,14 +284,13 @@ def qna_answer(id):
     q.answered_at = datetime.utcnow()
     db.session.commit()
 
-    # 이메일 발송
     send_email(q.email, f"[답변] {q.title}", answer_text)
 
     return redirect("/qna")
 
 
 # ==============================================
-#  관리자 대시보드
+# 관리자 대시보드
 # ==============================================
 @app.route("/admin")
 @login_required
@@ -318,9 +299,10 @@ def admin():
 
 
 # ==============================================
-#  실행
+# 실행
 # ==============================================
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
     app.run(host="0.0.0.0", port=5000, debug=True)
