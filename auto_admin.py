@@ -4,7 +4,7 @@ def create_initial_admins():
     # 대표
     if not User.query.filter_by(username="Showker").first():
         owner = User(
-            email="create.swkr@gmail.com",
+            email="showker@example.com",
             username="Showker",
             role=ROLE_OWNER,
             display_color="#ff9bcf",
