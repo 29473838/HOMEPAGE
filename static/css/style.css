@@ -272,17 +272,21 @@ textarea {
     width: 12px;
     height: 16px;
     border-radius: 60% 40% 60% 40%;
-    animation: fall 6s linear infinite, sway 3.5s ease-in-out infinite alternate;
+    background-color: #ffc8e6;
+    opacity: 0.9;
+    animation: fallAndSway linear infinite;
 }
 
-/* 떨어짐: 위에서 아래로 */
-@keyframes fall {
-    0% { transform: translateY(-20px); }
-    100% { transform: translateY(110vh); }
+/* 떨어지면서 좌우 흔들림 */
+@keyframes fallAndSway {
+    0% {
+        transform: translateX(0) translateY(-10%);
+    }
+    50% {
+        transform: translateX(30px) translateY(50vh);
+    }
+    100% {
+        transform: translateX(-30px) translateY(110vh);
+    }
 }
 
-/* 좌우 흔들림 */
-@keyframes sway {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(40px); }
-}
