@@ -154,10 +154,28 @@ def contact_page():
     return render_template("contact.html")
 
 
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
+    if request.method == "POST":
+        new_username = request.form.get("username")
+        new_color = request.form.get("display_color")
+
+        # 현재 유저 수정
+        current_user.username = new_username
+        current_user.display_color = new_color
+
+        try:
+            db.session.commit()
+            flash("프로필이 성공적으로 수정되었습니다!", "success")
+        except:
+            db.session.rollback()
+            flash("수정 중 오류가 발생했습니다.", "danger")
+
+        return redirect("/profile")
+
     return render_template("profile.html")
+
 
 
 @app.route("/dashboard")
