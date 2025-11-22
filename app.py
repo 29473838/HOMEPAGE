@@ -149,9 +149,21 @@ def business_page():
     return render_template("business.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact_page():
+    if request.method == "POST":
+        email = request.form.get("email")
+        title = request.form.get("title")
+        message = request.form.get("message")
+
+        # 이메일 발송 처리
+        send_email("관리자메일@example.com", f"[문의] {title}", f"보낸 사람: {email}\n\n{message}")
+
+        flash("문의가 정상적으로 접수되었습니다!", "success")
+        return redirect("/contact")
+
     return render_template("contact.html")
+
 
 
 @app.route("/profile", methods=["GET", "POST"])
