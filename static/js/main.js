@@ -9,24 +9,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const petal = document.createElement("div");
         petal.classList.add("petal");
 
-        // 랜덤 위치
         petal.style.left = Math.random() * 100 + "vw";
-
-        // 색상 랜덤
         petal.style.background = colors[Math.floor(Math.random() * colors.length)];
 
-        // 애니메이션 속도 랜덤
+        // 애니메이션 속도 랜덤 설정
         const fallTime = 5 + Math.random() * 4;
-        const swayTime = 3 + Math.random() * 3;
+        petal.style.animationDuration = fallTime + "s";
 
-        petal.style.animation = `
-            fall ${fallTime}s linear infinite,
-            sway ${swayTime}s ease-in-out infinite alternate
-        `;
+        // 랜덤 바람 방향
+        petal.style.setProperty("--drift", Math.random() > 0.5 ? 1 : -1);
 
         container.appendChild(petal);
 
-        // 제거
         setTimeout(() => {
             petal.remove();
         }, fallTime * 1000 + 1000);
@@ -34,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setInterval(createPetal, 260);
 });
+
+
 
 /* 인덱스 전용: 타이틀 스크롤 & 소개 등장 */
 const titleWrapper = document.getElementById("titleWrapper");
