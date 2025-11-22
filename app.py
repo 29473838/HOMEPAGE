@@ -206,7 +206,19 @@ def profile():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+
+    # 관리자 권한 체크 (직급: 대표/부대표/매니저만)
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("접근 권한이 없습니다.")
+        return redirect("/")
+
+    # 최근 가입 유저 10명
+    users = User.query.order_by(User.id.desc()).limit(10).all()
+
+    # 최근 문의 내용 10개
+    tickets = QNA.query.order_by(QNA.created_at.desc()).limit(10).all()
+
+    return render_template("dashboard.html", users=users, tickets=tickets)
 
 
 # ---- 회원가입 ----
