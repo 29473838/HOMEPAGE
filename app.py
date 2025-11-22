@@ -75,6 +75,19 @@ class QNA(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     answered_at = db.Column(db.DateTime, nullable=True)
 
+class ContactTicket(db.Model):
+    __tablename__ = "contact_tickets"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    category = db.Column(db.String(50), nullable=False)
+    email_reply_to = db.Column(db.String(100), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default="대기")  # 대기 / 처리중 / 완료
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 
 # ==============================================
 # 로그인 로드
