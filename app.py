@@ -228,8 +228,8 @@ def dashboard():
     # 최근 가입 유저 10명
     users = User.query.order_by(User.id.desc()).limit(10).all()
 
-    # 최근 문의 내용 10개
-    tickets = QNA.query.order_by(QNA.created_at.desc()).limit(10).all()
+    # ContactTicket(문의 내역) 10개 최신순
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).limit(10).all()
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
