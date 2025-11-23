@@ -4,7 +4,7 @@
 {% block content %}
 <h1 class="page-title">공지사항</h1>
 {% if has_permission(current_user, 'notice_write') %}
-    <a href="{{ url_for('notice_new') }}" class="btn">새 공지 작성</a>
+    <a href="{{ url_for('notice_write') }}" class="btn">새 공지 작성</a>
 {% endif %}
 <br><br>
 {% for n in notices %}
