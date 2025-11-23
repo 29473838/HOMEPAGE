@@ -307,9 +307,12 @@ def notice_write():
         n = Notice(title=title, content=content, author_id=current_user.id)
         db.session.add(n)
         db.session.commit()
+
+        flash("공지 등록 완료!")
         return redirect("/notice")
 
     return render_template("notice_write.html")
+    
 
 
 # ==============================================
