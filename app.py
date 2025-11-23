@@ -215,15 +215,15 @@ def profile():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-
     if current_user.role not in ["대표", "부대표", "매니저"]:
         flash("접근 권한이 없습니다.")
         return redirect("/")
 
-    page = request.args.get("page", 1, type=int)
+    user_page = request.args.get("user_page", 1, type=int)
+    ticket_page = request.args.get("ticket_page", 1, type=int)
 
-    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=10)
-    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=page, per_page=10)
+    users = User.query.order_by(User.id.desc()).paginate(page=user_page, per_page=10)
+    tickets = QNA.query.order_by(QNA.created_at.desc()).paginate(page=ticket_page, per_page=10)
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
