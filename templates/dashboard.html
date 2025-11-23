@@ -28,26 +28,26 @@
         <p>가입한 유저가 없습니다.</p>
     {% endif %}
 
-    <!-- 👇 유저 페이지네이션 -->
+    <!-- 유저 페이지네이션 -->
     <div class="pagination">
         {% if users.has_prev %}
-            <a href="{{ url_for('dashboard', page=users.prev_num) }}">이전</a>
+            <a href="{{ url_for('dashboard', user_page=users.prev_num, ticket_page=tickets.page) }}">이전</a>
         {% endif %}
-
+        
         {% for page_num in users.iter_pages() %}
             {% if page_num %}
                 {% if page_num == users.page %}
                     <strong>[{{ page_num }}]</strong>
                 {% else %}
-                    <a href="{{ url_for('dashboard', page=page_num) }}">{{ page_num }}</a>
+                    <a href="{{ url_for('dashboard', user_page=page_num, ticket_page=tickets.page) }}">{{ page_num }}</a>
                 {% endif %}
             {% else %}
                 ...
             {% endif %}
         {% endfor %}
-
+        
         {% if users.has_next %}
-            <a href="{{ url_for('dashboard', page=users.next_num) }}">다음</a>
+            <a href="{{ url_for('dashboard', user_page=users.next_num, ticket_page=tickets.page) }}">다음</a>
         {% endif %}
     </div>
 </div>
@@ -60,36 +60,37 @@
         <div class="ticket-row">
             <strong>[{{ t.title }}]</strong>
             <span>{{ t.email }}</span>
-            <span style="float:right;color:#888;">{{ t.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+            <span style="float: right; color:#888;">{{ t.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
         </div>
         {% endfor %}
     {% else %}
         <p>문의 기록이 없습니다.</p>
     {% endif %}
 
-    <!-- 👇 문의 페이지네이션 -->
+    <!-- 문의 페이지네이션 -->
     <div class="pagination">
         {% if tickets.has_prev %}
-            <a href="{{ url_for('dashboard', page=tickets.prev_num) }}">이전</a>
+            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.prev_num) }}">이전</a>
         {% endif %}
-
+        
         {% for page_num in tickets.iter_pages() %}
             {% if page_num %}
                 {% if page_num == tickets.page %}
                     <strong>[{{ page_num }}]</strong>
                 {% else %}
-                    <a href="{{ url_for('dashboard', page=page_num) }}">{{ page_num }}</a>
+                    <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=page_num) }}">{{ page_num }}</a>
                 {% endif %}
             {% else %}
                 ...
             {% endif %}
         {% endfor %}
-
+        
         {% if tickets.has_next %}
-            <a href="{{ url_for('dashboard', page=tickets.next_num) }}">다음</a>
+            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.next_num) }}">다음</a>
         {% endif %}
     </div>
 </div>
 
 {% endblock %}
+
 
