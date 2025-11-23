@@ -77,15 +77,17 @@ class QNA(db.Model):
 
 class ContactTicket(db.Model):
     __tablename__ = "contact_tickets"
-
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    category = db.Column(db.String(50), nullable=False)
-    email_reply_to = db.Column(db.String(100), nullable=False)
-    subject = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default="대기")  # 대기 / 처리중 / 완료
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    category = db.Column(db.String(50))
+    email_reply_to = db.Column(db.String(100))
+    subject = db.Column(db.String(200))
+    content = db.Column(db.Text)
+    status = db.Column(db.String(20), default="대기")   # 상태 관리 가능!
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+
 
 
 
@@ -223,7 +225,7 @@ def dashboard():
     ticket_page = request.args.get("ticket_page", 1, type=int)
 
     users = User.query.order_by(User.id.desc()).paginate(page=user_page, per_page=10)
-    tickets = QNA.query.order_by(QNA.created_at.desc()).paginate(page=ticket_page, per_page=10)
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=ticket_page, per_page=10)
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
