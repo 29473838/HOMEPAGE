@@ -216,19 +216,14 @@ def profile():
 @login_required
 def dashboard():
 
-    # 관리자 권한 체크
     if current_user.role not in ["대표", "부대표", "매니저"]:
         flash("접근 권한이 없습니다.")
         return redirect("/")
 
     page = request.args.get("page", 1, type=int)
-    per_page = 10
 
-    # 회원 목록 페이지네이션
-    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=per_page)
-
-    # 문의 목록 페이지네이션
-    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=page, per_page=per_page)
+    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=10)
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=page, per_page=10)
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
