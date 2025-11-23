@@ -216,16 +216,19 @@ def profile():
 @login_required
 def dashboard():
 
-    # 관리자 권한 체크 (직급: 대표/부대표/매니저만)
+    # 관리자 권한 체크
     if current_user.role not in ["대표", "부대표", "매니저"]:
         flash("접근 권한이 없습니다.")
         return redirect("/")
 
-    # 최근 가입 유저 10명
-    users = User.query.order_by(User.id.desc()).limit(10).all()
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
 
-    # ContactTicket(문의 내역) 10개 최신순
-    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).limit(10).all()
+    # 회원 목록 페이지네이션
+    users = User.query.order_by(User.id.desc()).paginate(page=page, per_page=per_page)
+
+    # 문의 목록 페이지네이션
+    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=page, per_page=per_page)
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
