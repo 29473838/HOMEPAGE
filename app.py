@@ -163,29 +163,25 @@ def business_page():
 
 
 @app.route("/contact", methods=["GET", "POST"])
+@login_required
 def contact_page():
     if request.method == "POST":
-        category = request.form.get("category")
-        email_reply_to = request.form.get("email_reply_to")
-        subject = request.form.get("subject")
-        content = request.form.get("content")
+        category = request.form["category"]
+        email_reply_to = request.form["email_reply_to"]
+        subject = request.form["subject"]
+        content = request.form["content"]
 
-        # 문의 이메일 관리자에게 전달
-        msg = f"""
-📌 카테고리: {category}
-📧 회신 이메일: {email_reply_to}
-👤 보낸사람(ID): {current_user.username if current_user.is_authenticated else '비로그인'}
-------------------------------------
-
-{content}
-"""
-        send_email(
-            "관리자메일@gmail.com",    # ⚠️ 운영자 이메일로 변경!
-            f"[문의접수] {subject}",
-            msg
+        ticket = ContactTicket(
+            user_id=current_user.id,
+            category=category,
+            email_reply_to=email_reply_to,
+            subject=subject,
+            content=content
         )
+        db.session.add(ticket)
+        db.session.commit()
 
-        flash("문의가 정상적으로 접수되었습니다! 빠르게 답변드리겠습니다 😊", "success")
+        flash("문의가 정상적으로 접수되었습니다!")
         return redirect("/contact")
 
     return render_template("contact.html")
