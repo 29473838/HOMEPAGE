@@ -56,16 +56,21 @@
 <div class="card">
     <h3>최근 문의</h3>
     {% if tickets.items %}
-        {% for t in tickets.items %}
-        <div class="ticket-row">
-            <strong>[{{ t.title }}]</strong>
-            <span>{{ t.email }}</span>
-            <span style="float: right; color:#888;">{{ t.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+        <div class="admin-table">
+            {% for t in tickets.items %}
+                <div class="ticket-row">
+                    <strong>[{{ t.category }}]</strong> {{ t.subject }}
+                    <span style="font-size:12px;color:#777;"> / {{ t.email_reply_to }}</span>
+                    <span style="float:right;color:#888;">
+                        {{ t.created_at.strftime("%Y-%m-%d %H:%M") }}
+                    </span>
+                </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     {% else %}
         <p>문의 기록이 없습니다.</p>
     {% endif %}
+
 
     <!-- 문의 페이지네이션 -->
     <div class="pagination">
