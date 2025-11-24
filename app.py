@@ -229,6 +229,50 @@ def dashboard():
 
     return render_template("dashboard.html", users=users, tickets=tickets)
 
+@app.route("/admin/user/<int:user_id>/warn", methods=["POST"])
+@admin_required
+def admin_user_warn(user_id):
+    user = User.query.get_or_404(user_id)
+    user.warnings = (user.warnings or 0) + 1
+    db.session.commit()
+    flash("경고 1회가 추가되었습니다.")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+@app.route("/admin/user/<int:user_id>/ban", methods=["POST"])
+@admin_required
+def admin_user_ban(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_banned = True
+    db.session.commit()
+    flash("해당 유저가 정지 처리되었습니다.")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+@app.route("/admin/user/<int:user_id>/unban", methods=["POST"])
+@admin_required
+def admin_user_unban(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_banned = False
+    db.session.commit()
+    flash("정지가 해제되었습니다.")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def admin_user_delete(user_id):
+    user = User.query.get_or_404(user_id)
+
+    ContactTicket.query.filter_by(user_id=user.id).delete()
+    QNA.query.filter_by(author_id=user.id).delete()
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("유저가 삭제되었습니다.")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
 
 # ---- 회원가입 ----
 @app.route("/register", methods=["GET", "POST"])
