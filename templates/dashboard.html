@@ -4,9 +4,20 @@
 {% block content %}
 <h1 class="page-title">관리자 대시보드</h1>
 
-<!-- 최근 가입 유저 -->
+<!-- 유저 검색 -->
 <div class="card">
-    <h3>최근 가입 유저</h3>
+    <h3>유저 검색</h3>
+    <form method="get" style="display:flex; gap:8px; align-items:center;">
+        <input type="text" name="q" value="{{ q }}" placeholder="닉네임 / 이메일 / 아이디 검색" style="flex:1;">
+        <!-- 페이지 리셋을 위해 page는 1로 고정 -->
+        <input type="hidden" name="ticket_page" value="{{ tickets.page }}">
+        <button type="submit" class="btn">검색</button>
+    </form>
+</div>
+
+<!-- 유저 리스트 -->
+<div class="card">
+    <h3>유저 리스트</h3>
     {% if users.items %}
     <table class="admin-table">
         <tr>
@@ -14,6 +25,9 @@
             <th>닉네임</th>
             <th>직급</th>
             <th>이메일</th>
+            <th>경고</th>
+            <th>상태</th>
+            <th>관리</th>
         </tr>
         {% for u in users.items %}
         <tr>
@@ -21,6 +35,42 @@
             <td>{{ u.username }}</td>
             <td>{{ u.role }}</td>
             <td>{{ u.email }}</td>
+            <td>{{ u.warnings or 0 }}</td>
+            <td>
+                {% if u.is_banned %}
+                    <span style="color:red;">정지</span>
+                {% else %}
+                    <span style="color:green;">정상</span>
+                {% endif %}
+            </td>
+            <td>
+                <!-- 경고 -->
+                <form method="post" action="{{ url_for('admin_user_warn', user_id=u.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-small">경고 +1</button>
+                </form>
+
+                <!-- 정지 / 해제 -->
+                {% if not u.is_banned %}
+                <form method="post" action="{{ url_for('admin_user_ban', user_id=u.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-small danger">정지</button>
+                </form>
+                {% else %}
+                <form method="post" action="{{ url_for('admin_user_unban', user_id=u.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-small">정지 해제</button>
+                </form>
+                {% endif %}
+
+                <!-- 강제 로그아웃 -->
+                <form method="post" action="{{ url_for('admin_user_force_logout', user_id=u.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-small">강제 로그아웃</button>
+                </form>
+
+                <!-- 계정 삭제 -->
+                <form method="post" action="{{ url_for('admin_user_delete', user_id=u.id) }}" style="display:inline;" 
+                      onsubmit="return confirm('정말 이 계정을 삭제하시겠습니까?');">
+                    <button type="submit" class="btn-small danger">삭제</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
@@ -31,7 +81,7 @@
     <!-- 유저 페이지네이션 -->
     <div class="pagination">
         {% if users.has_prev %}
-            <a href="{{ url_for('dashboard', user_page=users.prev_num, ticket_page=tickets.page) }}">이전</a>
+            <a href="{{ url_for('dashboard', user_page=users.prev_num, ticket_page=tickets.page, q=q) }}">이전</a>
         {% endif %}
         
         {% for page_num in users.iter_pages() %}
@@ -39,7 +89,7 @@
                 {% if page_num == users.page %}
                     <strong>[{{ page_num }}]</strong>
                 {% else %}
-                    <a href="{{ url_for('dashboard', user_page=page_num, ticket_page=tickets.page) }}">{{ page_num }}</a>
+                    <a href="{{ url_for('dashboard', user_page=page_num, ticket_page=tickets.page, q=q) }}">{{ page_num }}</a>
                 {% endif %}
             {% else %}
                 ...
@@ -47,55 +97,97 @@
         {% endfor %}
         
         {% if users.has_next %}
-            <a href="{{ url_for('dashboard', user_page=users.next_num, ticket_page=tickets.page) }}">다음</a>
+            <a href="{{ url_for('dashboard', user_page=users.next_num, ticket_page=tickets.page, q=q) }}">다음</a>
         {% endif %}
     </div>
 </div>
 
 <!-- 최근 문의 기록 -->
 <div class="card">
-    <h3>최근 문의</h3>
+    <h3>문의 기록</h3>
     {% if tickets.items %}
         <div class="admin-table">
             {% for t in tickets.items %}
-                <div class="ticket-row">
+            <div class="ticket-row" style="border-bottom:1px solid #eee; padding:8px 0;">
+                <div>
                     <strong>[{{ t.category }}]</strong> {{ t.subject }}
                     <span style="font-size:12px;color:#777;"> / {{ t.email_reply_to }}</span>
                     <span style="float:right;color:#888;">
                         {{ t.created_at.strftime("%Y-%m-%d %H:%M") }}
                     </span>
                 </div>
+                <div style="margin-top:5px;">
+                    <div style="font-size:13px;white-space:pre-wrap;">
+                        <strong>내용:</strong> {{ t.content }}
+                    </div>
+                    {% if t.answer %}
+                    <div style="font-size:13px;white-space:pre-wrap;margin-top:4px;">
+                        <strong>답변:</strong> {{ t.answer }}
+                    </div>
+                    {% endif %}
+                    <div style="margin-top:4px;font-size:12px;">
+                        상태:
+                        {% if t.status == "대기중" %}
+                            <span style="color:#ff9800;">대기중</span>
+                        {% elif t.status == "처리중" %}
+                            <span style="color:#2196f3;">처리중</span>
+                        {% elif t.status == "처리완료" %}
+                            <span style="color:#4caf50;">처리완료</span>
+                        {% elif t.status == "처리불가" %}
+                            <span style="color:#f44336;">처리불가</span>
+                        {% else %}
+                            <span>{{ t.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 상태/답변 수정 + 삭제 버튼 -->
+                <div style="margin-top:6px;">
+                    <form method="post" action="{{ url_for('admin_ticket_status', ticket_id=t.id) }}" style="display:inline-block; margin-right:8px;">
+                        <select name="status">
+                            <option value="대기중"   {% if t.status == "대기중" %}selected{% endif %}>대기중</option>
+                            <option value="처리중"   {% if t.status == "처리중" %}selected{% endif %}>처리중</option>
+                            <option value="처리완료" {% if t.status == "처리완료" %}selected{% endif %}>처리완료</option>
+                            <option value="처리불가" {% if t.status == "처리불가" %}selected{% endif %}>처리불가</option>
+                        </select>
+                        <input type="text" name="answer" placeholder="답변 내용(선택)" style="width:260px;">
+                        <button type="submit" class="btn-small">저장</button>
+                    </form>
+
+                    <form method="post" action="{{ url_for('admin_ticket_delete', ticket_id=t.id) }}" style="display:inline-block;"
+                          onsubmit="return confirm('이 문의를 삭제하시겠습니까?');">
+                        <button type="submit" class="btn-small danger">삭제</button>
+                    </form>
+                </div>
+            </div>
             {% endfor %}
         </div>
     {% else %}
         <p>문의 기록이 없습니다.</p>
     {% endif %}
 
-
     <!-- 문의 페이지네이션 -->
     <div class="pagination">
         {% if tickets.has_prev %}
-            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.prev_num) }}">이전</a>
+            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.prev_num, q=q) }}">이전</a>
         {% endif %}
-        
+
         {% for page_num in tickets.iter_pages() %}
             {% if page_num %}
                 {% if page_num == tickets.page %}
                     <strong>[{{ page_num }}]</strong>
                 {% else %}
-                    <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=page_num) }}">{{ page_num }}</a>
+                    <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=page_num, q=q) }}">{{ page_num }}</a>
                 {% endif %}
             {% else %}
                 ...
             {% endif %}
         {% endfor %}
-        
+
         {% if tickets.has_next %}
-            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.next_num) }}">다음</a>
+            <a href="{{ url_for('dashboard', user_page=users.page, ticket_page=tickets.next_num, q=q) }}">다음</a>
         {% endif %}
     </div>
 </div>
 
 {% endblock %}
-
-
