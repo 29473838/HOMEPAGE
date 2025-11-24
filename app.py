@@ -27,6 +27,17 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+from functools import wraps
+
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.role not in ["대표", "부대표", "매니저"]:
+            flash("관리자만 접근 가능합니다.")
+            return redirect(url_for("index"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # ==============================================
 # DB 모델 (테이블명 명시 수정)
