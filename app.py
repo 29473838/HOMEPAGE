@@ -283,6 +283,19 @@ def admin_user_delete(user_id):
     flash("유저가 삭제되었습니다.")
     return redirect(request.referrer or url_for("dashboard"))
 
+@app.route("/admin/user/<int:user_id>/force_logout", methods=["POST"])
+@admin_required
+def admin_user_force_logout(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # 세션을 강제로 끊는 처리 → banned_until을 현재시간으로 설정
+    user.is_banned = True
+    user.banned_until = datetime.utcnow()
+    db.session.commit()
+
+    flash(f"{user.username}님 강제 로그아웃 처리 완료.")
+    return redirect(url_for('dashboard'))
+
 
 
 # ---- 회원가입 ----
