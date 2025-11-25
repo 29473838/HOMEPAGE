@@ -296,6 +296,22 @@ def admin_user_force_logout(user_id):
     flash(f"{user.username}님 강제 로그아웃 처리 완료.")
     return redirect(url_for('dashboard'))
 
+@app.route("/admin/ticket/<int:ticket_id>/status", methods=["POST"])
+@admin_required
+def admin_ticket_status(ticket_id):
+    ticket = ContactTicket.query.get_or_404(ticket_id)
+    new_status = request.form.get("status")
+
+    if new_status not in ["대기중", "처리중", "처리완료", "처리불가"]:
+        flash("잘못된 상태입니다.")
+        return redirect(url_for("dashboard"))
+
+    ticket.status = new_status
+    db.session.commit()
+    flash("상태가 변경되었습니다.")
+    return redirect(url_for("dashboard"))
+
+
 
 
 # ---- 회원가입 ----
