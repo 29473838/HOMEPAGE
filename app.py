@@ -94,7 +94,8 @@ class ContactTicket(db.Model):
     email_reply_to = db.Column(db.String(100))
     subject = db.Column(db.String(200))
     content = db.Column(db.Text)
-    status = db.Column(db.String(20), default="대기")   # 상태 관리 가능!
+    admin_reply = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default="대기")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User")
