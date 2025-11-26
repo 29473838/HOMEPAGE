@@ -197,7 +197,13 @@ def contact_page():
         flash("문의가 정상적으로 접수되었습니다!")
         return redirect("/contact")
 
-    return render_template("contact.html")
+    # 🔥 로그인한 유저의 문의 내역 가져오기
+    my_tickets = ContactTicket.query.filter_by(
+        user_id=current_user.id
+    ).order_by(ContactTicket.created_at.desc()).all()
+
+    return render_template("contact.html", my_tickets=my_tickets)
+
 
 
 
