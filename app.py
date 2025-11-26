@@ -326,6 +326,24 @@ def admin_ticket_delete(ticket_id):
     flash("문의가 삭제되었습니다.")
     return redirect(url_for("dashboard"))
 
+@app.route("/admin/user/<int:user_id>/unwarn", methods=["POST"])
+@login_required
+def admin_user_unwarn(user_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("권한이 없습니다.")
+        return redirect(url_for("dashboard"))
+
+    user = User.query.get_or_404(user_id)
+
+    # 경고 차감 (0 미만으로 내려가지 않게 방지)
+    if user.warnings > 0:
+        user.warnings -= 1
+        db.session.commit()
+        flash(f"{user.username} 님의 경고를 1 감소시켰습니다.")
+    else:
+        flash("이미 경고가 0입니다.")
+
+    return redirect(url_for("dashboard"))
 
 
 
