@@ -312,13 +312,20 @@ def admin_ticket_status(ticket_id):
     return redirect(url_for("dashboard"))
 
 @app.route("/admin/ticket/<int:ticket_id>/delete", methods=["POST"])
-@admin_required
+@login_required
 def admin_ticket_delete(ticket_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("권한이 없습니다.")
+        return redirect(url_for("dashboard"))
+
     ticket = ContactTicket.query.get_or_404(ticket_id)
+
     db.session.delete(ticket)
     db.session.commit()
+
     flash("문의가 삭제되었습니다.")
     return redirect(url_for("dashboard"))
+
 
 
 
