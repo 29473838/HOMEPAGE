@@ -311,6 +311,14 @@ def admin_ticket_status(ticket_id):
     flash("상태가 변경되었습니다.")
     return redirect(url_for("dashboard"))
 
+@app.route("/admin/ticket/<int:ticket_id>/delete", methods=["POST"])
+@admin_required
+def admin_ticket_delete(ticket_id):
+    ticket = ContactTicket.query.get_or_404(ticket_id)
+    db.session.delete(ticket)
+    db.session.commit()
+    flash("문의가 삭제되었습니다.")
+    return redirect(url_for("dashboard"))
 
 
 
