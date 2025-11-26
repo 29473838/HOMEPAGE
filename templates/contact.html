@@ -3,6 +3,7 @@
 
 {% block content %}
 <h1 class="page-title">문의하기</h1>
+
 <div class="card">
 {% if current_user.is_authenticated %}
     <form method="post">
@@ -26,7 +27,56 @@
         <button type="submit" class="btn">문의 보내기</button>
     </form>
 {% else %}
-    <p>문의 작성은 <a href="{{ url_for('login') }}">로그인</a> 후 이용 가능합니다.</p>
+    <p>문의 작성은 
+        <a href="{{ url_for('login') }}">로그인</a> 후 이용 가능합니다.
+    </p>
 {% endif %}
 </div>
+
+<br><br>
+
+{% if current_user.is_authenticated %}
+<h2 class="page-title">내 문의 내역</h2>
+
+{% for t in my_tickets %}
+<div class="card">
+    <h3>[{{ t.category }}] {{ t.subject }}</h3>
+
+    <p style="font-size: 13px; color: #666;">
+        작성일 : {{ t.created_at.strftime("%Y-%m-%d %H:%M") }}
+    </p>
+
+    <p><strong>상태 :</strong> 
+        {% if t.status == "대기중" %}
+            <span style="color:#777;">대기중</span>
+        {% elif t.status == "처리중" %}
+            <span style="color:#007bff;">처리중</span>
+        {% elif t.status == "답변완료" %}
+            <span style="color:#28a745;">답변 완료</span>
+        {% elif t.status == "처리불가" %}
+            <span style="color:#dc3545;">처리 불가</span>
+        {% endif %}
+    </p>
+
+    <p><strong>문의 내용:</strong></p>
+    <div style="background:#fafafa; padding:10px; border-radius:6px;">
+        {{ t.content }}
+    </div>
+
+    <hr>
+
+    <p><strong>관리자 답변:</strong></p>
+    {% if t.admin_reply %}
+        <div style="background:#eef7ff; padding:10px; border-radius:6px;">
+            {{ t.admin_reply }}
+        </div>
+    {% else %}
+        <p style="color:#999;">아직 답변이 등록되지 않았습니다.</p>
+    {% endif %}
+</div>
+{% else %}
+<p>문의 내역을 확인하려면 로그인하세요.</p>
+{% endfor %}
+{% endif %}
+
 {% endblock %}
