@@ -44,13 +44,14 @@
                 {% endif %}
             </td>
             <td>
-                <!-- 경고 -->
+                <!-- 경고 증가 -->
                 <form method="post" action="{{ url_for('admin_user_warn', user_id=u.id) }}" style="display:inline;">
-                    <button type="submit" class="btn-small">경고 +1</button>
+                    <button class="btn-small btn-warn">경고 +1</button>
                 </form>
-
+                
+                <!-- 경고 감소 -->
                 <form method="post" action="{{ url_for('admin_user_unwarn', user_id=u.id) }}" style="display:inline;">
-                    <button class="btn-small btn-small">경고 -1</button>
+                    <button class="btn-small btn-safe">경고 -1</button>
                 </form>
 
                 <!-- 정지 / 해제 -->
