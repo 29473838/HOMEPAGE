@@ -451,6 +451,10 @@ def notice_write():
 
     return render_template("notice_write.html")
     
+@app.route("/notice/<int:notice_id>")
+def notice_detail(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    return render_template("notice_detail.html", notice=notice)
 
 
 # ==============================================
