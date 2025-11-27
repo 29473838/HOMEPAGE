@@ -95,7 +95,7 @@ class ContactTicket(db.Model):
     subject = db.Column(db.String(200))
     content = db.Column(db.Text)
     admin_reply = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(20), default="대기")
+    status = db.Column(db.String(20), default="대기중")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User")
@@ -315,7 +315,6 @@ def admin_ticket_status(ticket_id):
         flash("문의 기록을 찾을 수 없습니다.")
         return redirect("/dashboard")
 
-    new_status = request.form.get("status")
     ticket.status = request.form.get("status")
     admin_reply = request.form.get("answer", "").strip()
 
