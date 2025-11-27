@@ -519,7 +519,9 @@ def notice_comment(notice_id):
 @app.route("/notice/<int:notice_id>")
 def notice_detail(notice_id):
     notice = Notice.query.get_or_404(notice_id)
-    comments = NoticeComment.query.filter_by(notice_id=notice.id).order_by(NoticeComment.created_at.asc()).all()
+    comments = NoticeComment.query.filter_by(notice_id=notice.id) \
+                                  .order_by(NoticeComment.created_at.asc()) \
+                                  .all()
     return render_template("notice_detail.html", notice=notice, comments=comments)
 
 
