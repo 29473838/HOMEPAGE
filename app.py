@@ -470,6 +470,25 @@ def notice_delete(notice_id):
     flash("공지사항이 삭제되었습니다.")
     return redirect(url_for("notice_list"))
 
+@app.route("/notice/edit/<int:notice_id>", methods=["GET", "POST"])
+@login_required
+def notice_edit(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+
+    # 작성자 또는 관리자만 편집 가능
+    if notice.author_id != current_user.id and current_user.role not in ["대표", "부대표", "매니저"]:
+        abort(403)
+
+    if request.method == "POST":
+        notice.title = request.form["title"]
+        notice.content = request.form["content"]
+        db.session.commit()
+
+        flash("공지사항이 수정되었습니다.")
+        return redirect(url_for("notice_detail", notice_id=notice.id))
+
+    return render_template("notice_edit.html", notice=notice)
+
 
 # ==============================================
 # QNA
