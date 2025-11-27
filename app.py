@@ -322,7 +322,7 @@ def admin_ticket_status(ticket_id):
         ticket.admin_reply = admin_reply
 
 
-    if new_status not in ["대기중", "처리중", "처리완료", "처리불가"]:
+    if ticket.status = status not in ["대기중", "처리중", "처리완료", "처리불가"]:
         flash("잘못된 상태입니다.")
         return redirect(url_for("dashboard"))
 
