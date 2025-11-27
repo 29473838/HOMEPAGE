@@ -100,6 +100,16 @@ class ContactTicket(db.Model):
 
     user = db.relationship("User")
 
+class NoticeComment(db.Model):
+    __tablename__ = "notice_comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    notice_id = db.Column(db.Integer, db.ForeignKey("notices.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
 
 
 
@@ -488,6 +498,33 @@ def notice_edit(notice_id):
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_edit.html", notice=notice)
+
+@app.route("/notice/<int:notice_id>/comment", methods=["POST"])
+@login_required
+def notice_comment(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    comment_text = request.form.get("comment")
+
+    if not comment_text or comment_text.strip() == "":
+        flash("댓글 내용을 입력해주세요.")
+        return redirect(url_for("notice_detail", notice_id=notice.id))
+
+    comment = NoticeComment(
+        notice_id=notice.id,
+        user_id=current_user.id,
+        content=comment_text
+    )
+    db.session.add(comment)
+    db.session.commit()
+
+    flash("댓글이 작성되었습니다.")
+    return redirect(url_for("notice_detail", notice_id=notice.id))
+
+@app.route("/notice/<int:notice_id>")
+def notice_detail(notice_id):
+    notice = Notice.query.get_or_404(notice_id)
+    comments = NoticeComment.query.filter_by(notice_id=notice.id).order_by(NoticeComment.created_at.asc()).all()
+    return render_template("notice_detail.html", notice=notice, comments=comments)
 
 
 # ==============================================
