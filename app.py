@@ -456,6 +456,20 @@ def notice_detail(notice_id):
     notice = Notice.query.get_or_404(notice_id)
     return render_template("notice_detail.html", notice=notice)
 
+@app.route("/notice/delete/<int:notice_id>", methods=["POST"])
+@login_required
+def notice_delete(notice_id):
+    # 권한 체크: notice_write 가진 사람만 삭제 가능
+    if not inject_permission_checker()["has_permission"](current_user, "notice_write"):
+        abort(403)
+
+    notice = Notice.query.get_or_404(notice_id)
+    db.session.delete(notice)
+    db.session.commit()
+
+    flash("공지사항이 삭제되었습니다.")
+    return redirect(url_for("notice_list"))
+
 
 # ==============================================
 # QNA
