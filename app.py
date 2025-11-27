@@ -315,14 +315,14 @@ def admin_ticket_status(ticket_id):
         flash("문의 기록을 찾을 수 없습니다.")
         return redirect("/dashboard")
 
-    ticket.status = request.form.get("status")
+    new_answer = request.form.get("status")
     admin_reply = request.form.get("answer", "").strip()
 
     if admin_reply:
         ticket.admin_reply = admin_reply
 
 
-    if ticket.status = status not in ["대기중", "처리중", "처리완료", "처리불가"]:
+    if new_answer not in ["대기중", "처리중", "처리완료", "처리불가"]:
         flash("잘못된 상태입니다.")
         return redirect(url_for("dashboard"))
 
