@@ -39,6 +39,30 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+from werkzeug.utils import secure_filename
+
+# 업로드 폴더 설정
+app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads", "qna")
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+ALLOWED_VIDEO_EXTENSIONS = {"mp4", "webm", "ogg"}
+
+def allowed_file(filename):
+    if "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[1].lower()
+    return ext in (ALLOWED_IMAGE_EXTENSIONS | ALLOWED_VIDEO_EXTENSIONS)
+
+def get_attachment_type(filename):
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext in ALLOWED_IMAGE_EXTENSIONS:
+        return "image"
+    if ext in ALLOWED_VIDEO_EXTENSIONS:
+        return "video"
+    return None
+
+
 # ==============================================
 # DB 모델 (테이블명 명시 수정)
 # ==============================================
@@ -528,42 +552,116 @@ def notice_detail(notice_id):
 # ==============================================
 # QNA
 # ==============================================
-@app.route("/qna")
+@app.route("/qna", methods=["GET", "POST"])
 def qna_list():
-    qnas = QNA.query.order_by(QNA.created_at.desc()).all()
-    return render_template("qna.html", qnas=qnas)
+    # ----- QNA 작성 (POST) -----
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash("로그인 후에 Q&A를 작성할 수 있습니다.")
+            return redirect(url_for("login"))
+
+        title = request.form.get("title")
+        content = request.form.get("content")
+        file = request.files.get("attachment")
+
+        attachment = None
+        attachment_type = None
+
+        # 파일 업로드 처리
+        if file and file.filename:
+            if not allowed_file(file.filename):
+                flash("허용되지 않은 파일 형식입니다. (이미지: png/jpg/jpeg/gif, 영상: mp4/webm/ogg)")
+                return redirect(url_for("qna_list"))
+
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
+            # 파일명 중복 방지를 위해 시간 붙이기
+            filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{name}{ext}"
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
+
+            attachment = "/" + save_path.replace("\\", "/")
+            attachment_type = get_attachment_type(filename)
+
+        q = QNA(
+            author_id=current_user.id,
+            email=current_user.email,  # 폼에서 이메일 안 받아도 됨
+            title=title,
+            content=content,
+            attachment=attachment,
+            attachment_type=attachment_type,
+        )
+        db.session.add(q)
+        db.session.commit()
+        flash("Q&A가 등록되었습니다.")
+        return redirect(url_for("qna_list"))
+
+    # ----- QNA 목록 (GET) -----
+    # HOT QNA (최대 10개)
+    hot_qnas = (
+        QNA.query.filter_by(is_hot=True)
+        .order_by(QNA.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    # 일반 QNA (HOT 아닌 것들)
+    normal_qnas = (
+        QNA.query.filter((QNA.is_hot == False) | (QNA.is_hot.is_(None)))
+        .order_by(QNA.created_at.desc())
+        .all()
+    )
+
+    return render_template("qna.html", hot_qnas=hot_qnas, qnas=normal_qnas)
+
 
 
 @app.route("/qna/write", methods=["GET", "POST"])
 @login_required
 def qna_write():
-    if request.method == "POST":
-        q = QNA(
-            author_id=current_user.id,
-            email=request.form["email"],
-            title=request.form["title"],
-            content=request.form["content"],
-        )
-        db.session.add(q)
-        db.session.commit()
-        return redirect("/qna")
+    # 예전 URL로 접근해도 /qna 로 보내기
+    return redirect(url_for("qna_list"))
 
-    return render_template("qna_write.html")
+@app.route("/qna/<int:id>/hot", methods=["POST"])
+@admin_required
+def qna_toggle_hot(id):
+    q = QNA.query.get_or_404(id)
 
+    if not q.is_hot:
+        # HOT QNA 개수 확인 (10개 제한)
+        hot_count = QNA.query.filter_by(is_hot=True).count()
+        if hot_count >= 10:
+            flash("HOT Q&A는 최대 10개까지만 지정할 수 있습니다.")
+            return redirect(url_for("qna_list"))
+        q.is_hot = True
+        msg = "HOT Q&A로 지정되었습니다."
+    else:
+        q.is_hot = False
+        msg = "HOT Q&A에서 해제되었습니다."
+
+    db.session.commit()
+    flash(msg)
+    return redirect(url_for("qna_list"))
 
 @app.route("/qna/answer/<int:id>", methods=["POST"])
-@login_required
+@admin_required
 def qna_answer(id):
-    q = QNA.query.get(id)
+    q = QNA.query.get_or_404(id)
 
-    answer_text = request.form["answer"]
+    answer_text = request.form.get("answer")
+    if not answer_text:
+        flash("답변 내용을 입력하세요.")
+        return redirect(url_for("qna_list"))
+
     q.answer = answer_text
     q.answered_at = datetime.utcnow()
     db.session.commit()
 
     send_email(q.email, f"[답변] {q.title}", answer_text)
 
-    return redirect("/qna")
+    flash("답변이 등록되었습니다.")
+    return redirect(url_for("qna_list"))
+
 
 
 # ==============================================
