@@ -110,6 +110,12 @@ class QNA(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     answered_at = db.Column(db.DateTime, nullable=True)
 
+    is_hot = db.Column(db.Boolean, default=False)
+
+    attachment = db.Column(db.String(300))     
+    attachment_type = db.Column(db.String(20))  
+
+
 class ContactTicket(db.Model):
     __tablename__ = "contact_tickets"
     id = db.Column(db.Integer, primary_key=True)
