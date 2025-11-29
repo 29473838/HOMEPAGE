@@ -28,8 +28,10 @@
     {% endfor %}
 
     {% if current_user.is_authenticated %}
-    <form method="post" style="margin-top:15px;">
-        <textarea name="content" placeholder="댓글을 입력하세요"></textarea>
+    <form method="post"
+          action="{{ url_for('notice_comment', notice_id=notice.id) }}"
+          style="margin-top:15px;">
+        <textarea name="comment" placeholder="댓글을 입력하세요"></textarea>
         <button type="submit" class="btn">댓글 등록</button>
     </form>
     {% else %}
