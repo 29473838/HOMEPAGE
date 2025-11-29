@@ -4,28 +4,146 @@
 {% block content %}
 <h1 class="page-title">Q&A</h1>
 
+{# Q&A 작성 폼 #}
 <div class="card">
 {% if current_user.is_authenticated %}
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <label>제목</label>
         <input type="text" name="title" required>
+
         <label>내용</label>
         <textarea name="content" required></textarea>
-        <button type="submit" class="btn">등록</button>
+
+        <label>첨부파일 (이미지/영상)</label>
+        <input type="file" name="attachment" accept="image/*,video/*">
+
+        <button type="submit" class="btn" style="margin-top:10px;">등록</button>
     </form>
 {% else %}
     <p>Q&A 작성은 <a href="{{ url_for('login') }}">로그인</a> 후 이용 가능합니다.</p>
 {% endif %}
 </div>
 
-<br>
-{% for p in posts %}
+{# HOT Q&A 영역 (최대 10개) #}
+{% if hot_qnas %}
+<h2 class="page-title" style="margin-top:30px;">HOT Q&A</h2>
+
+{% for p in hot_qnas %}
+<div class="card" style="border:2px solid #ff9800;">
+    <div style="font-weight:600;">
+        🔥 {{ p.title }}
+
+        {# 관리자만 HOT 해제 가능 #}
+        {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+        <form method="post"
+              action="{{ url_for('qna_toggle_hot', id=p.id) }}"
+              style="display:inline;">
+            <button type="submit" class="btn" style="font-size:11px;padding:2px 6px;margin-left:6px;">
+                HOT 해제
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div style="font-size:12px;color:#666;">
+        {{ p.created_at.strftime("%Y-%m-%d %H:%M") }}
+    </div>
+
+    <p style="margin-top:8px;white-space:pre-line;">{{ p.content }}</p>
+
+    {# 첨부파일 표시 #}
+    {% if p.attachment %}
+        {% if p.attachment_type == "image" %}
+            <img src="{{ p.attachment }}" style="max-width:100%;margin-top:8px;">
+        {% elif p.attachment_type == "video" %}
+            <video controls style="max-width:100%;margin-top:8px;">
+                <source src="{{ p.attachment }}">
+                브라우저가 영상을 지원하지 않습니다.
+            </video>
+        {% endif %}
+    {% endif %}
+
+    {# 관리자 답변 내용 #}
+    {% if p.answer %}
+        <div style="margin-top:10px;padding:8px 10px;background:#f3f3f3;border-radius:6px;font-size:14px;">
+            <strong>관리자 답변</strong><br>
+            <span style="white-space:pre-line;">{{ p.answer }}</span>
+        </div>
+    {% endif %}
+
+    {# 관리자 답변 입력 폼 #}
+    {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+        <form method="post"
+              action="{{ url_for('qna_answer', id=p.id) }}"
+              style="margin-top:10px;">
+            <label>답변</label>
+            <textarea name="answer" required>{{ p.answer or "" }}</textarea>
+            <button type="submit" class="btn" style="margin-top:5px;">답변 등록/수정</button>
+        </form>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{# 전체 Q&A 리스트 #}
+<h2 class="page-title" style="margin-top:30px;">전체 Q&A</h2>
+
+{% for p in qnas %}
 <div class="card">
-    <div style="font-weight:600;">{{ p.title }}</div>
-    <div style="font-size:12px;color:#666;">{{ p.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
-    <p style="margin-top:8px;">{{ p.content }}</p>
+    <div style="font-weight:600;">
+        {{ p.title }}
+
+        {# 관리자만 HOT 지정/해제 가능 #}
+        {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+        <form method="post"
+              action="{{ url_for('qna_toggle_hot', id=p.id) }}"
+              style="display:inline;">
+            <button type="submit" class="btn" style="font-size:11px;padding:2px 6px;margin-left:6px;">
+                {% if p.is_hot %}HOT 해제{% else %}HOT 지정{% endif %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div style="font-size:12px;color:#666;">
+        {{ p.created_at.strftime("%Y-%m-%d %H:%M") }}
+    </div>
+
+    <p style="margin-top:8px;white-space:pre-line;">{{ p.content }}</p>
+
+    {# 첨부파일 표시 #}
+    {% if p.attachment %}
+        {% if p.attachment_type == "image" %}
+            <img src="{{ p.attachment }}" style="max-width:100%;margin-top:8px;">
+        {% elif p.attachment_type == "video" %}
+            <video controls style="max-width:100%;margin-top:8px;">
+                <source src="{{ p.attachment }}">
+                브라우저가 영상을 지원하지 않습니다.
+            </video>
+        {% endif %}
+    {% endif %}
+
+    {# 관리자 답변 내용 #}
+    {% if p.answer %}
+        <div style="margin-top:10px;padding:8px 10px;background:#f3f3f3;border-radius:6px;font-size:14px;">
+            <strong>관리자 답변</strong><br>
+            <span style="white-space:pre-line;">{{ p.answer }}</span>
+        </div>
+    {% endif %}
+
+    {# 관리자 답변 입력 폼 #}
+    {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+        <form method="post"
+              action="{{ url_for('qna_answer', id=p.id) }}"
+              style="margin-top:10px;">
+            <label>답변</label>
+            <textarea name="answer" required>{{ p.answer or "" }}</textarea>
+            <button type="submit" class="btn" style="margin-top:5px;">답변 등록/수정</button>
+        </form>
+    {% endif %}
 </div>
 {% else %}
 <p>등록된 Q&A가 없습니다.</p>
 {% endfor %}
+
 {% endblock %}
