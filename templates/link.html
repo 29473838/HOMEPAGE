@@ -6,33 +6,44 @@
 
 <div class="link-wrapper">
     <div class="link-card">
-        <div class="icon youtube">▶</div>
+        <div class="icon">
+            <img src="{{ url_for('static', filename='icons/youtube.png') }}" alt="유튜브" class="icon-img">
+        </div>
         <div class="link-title">유튜브</div>
         <a href="https://youtube.com" target="_blank" class="link-btn">바로가기</a>
     </div>
 
     <div class="link-card">
-        <div class="icon chzzk">❖</div>
+        <div class="icon">
+            <img src="{{ url_for('static', filename='icons/chzzk.png') }}" alt="치지직" class="icon-img">
+        </div>
         <div class="link-title">치지직</div>
         <a href="https://chzzk.naver.com" target="_blank" class="link-btn">바로가기</a>
     </div>
 
     <div class="link-card">
-        <div class="icon soop">🌲</div>
+        <div class="icon">
+            <img src="{{ url_for('static', filename='icons/soop.png') }}" alt="숲" class="icon-img">
+        </div>
         <div class="link-title">숲</div>
         <a href="#" target="_blank" class="link-btn">바로가기</a>
     </div>
 
     <div class="link-card">
-        <div class="icon cafe">☕</div>
+        <div class="icon">
+            <img src="{{ url_for('static', filename='icons/cafe.png') }}" alt="카페" class="icon-img">
+        </div>
         <div class="link-title">카페</div>
         <a href="#" target="_blank" class="link-btn">바로가기</a>
     </div>
 
     <div class="link-card">
-        <div class="icon discord">💬</div>
+        <div class="icon">
+            <img src="{{ url_for('static', filename='icons/discord.png') }}" alt="디스코드" class="icon-img">
+        </div>
         <div class="link-title">디스코드</div>
         <a href="#" target="_blank" class="link-btn">바로가기</a>
     </div>
 </div>
 {% endblock %}
+
