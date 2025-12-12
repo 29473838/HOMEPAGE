@@ -378,6 +378,7 @@ def admin_ticket_status(ticket_id):
     ticket.status = new_status
     if admin_reply:
         ticket.admin_reply = admin_reply
+        ticket.admin_id = current_user.id
 
     try:
         db.session.commit()
