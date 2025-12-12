@@ -677,6 +677,7 @@ def qna_answer(id):
 
     q.answer = answer_text
     q.answered_at = datetime.utcnow()
+    q.answer_admin_id = current_user.id
     db.session.commit()
 
     send_email(q.email, f"[답변] {q.title}", answer_text)
