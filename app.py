@@ -254,24 +254,25 @@ def contact_page():
 @login_required
 def profile():
     if request.method == "POST":
-        new_username = request.form.get("username")
-        new_color = request.form.get("display_color")
+        new_username = request.form.get("username") or current_user.username
+        new_color = request.form.get("display_color") or current_user.display_color
+        new_title = request.form.get("title") or None
 
-        # 현재 유저 수정
         current_user.username = new_username
         current_user.display_color = new_color
+        current_user.title = new_title
 
         try:
             db.session.commit()
             flash("프로필이 성공적으로 수정되었습니다!", "success")
-        except:
+        except Exception as e:
             db.session.rollback()
+            print("PROFILE ERROR:", e)
             flash("수정 중 오류가 발생했습니다.", "danger")
 
         return redirect("/profile")
 
     return render_template("profile.html")
-
 
 
 @app.route("/dashboard")
