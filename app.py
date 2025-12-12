@@ -98,6 +98,7 @@ class Notice(db.Model):
     content = db.Column(db.Text)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    author = db.relationship("User", foreign_keys=[author_id])
 
 
 class QNA(db.Model):
