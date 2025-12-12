@@ -351,28 +351,37 @@ def admin_user_force_logout(user_id):
 def admin_ticket_status(ticket_id):
     if current_user.role not in ["대표", "부대표", "매니저"]:
         flash("관리자 권한이 없습니다.")
-        return redirect("/")
+        return redirect(url_for("dashboard"))
 
     ticket = ContactTicket.query.get(ticket_id)
     if not ticket:
         flash("문의 기록을 찾을 수 없습니다.")
-        return redirect("/dashboard")
+        return redirect(url_for("dashboard"))
 
-    new_answer = request.form.get("status")
+    # 폼에서 넘어온 값
+    new_status = request.form.get("status")
     admin_reply = request.form.get("answer", "").strip()
 
-    if admin_reply:
-        ticket.admin_reply = admin_reply
-
-
-    if new_answer not in ["대기중", "처리중", "처리완료", "처리불가"]:
+    # 상태 값 검증
+    allowed_status = ["대기중", "처리중", "처리완료", "처리불가"]
+    if new_status not in allowed_status:
         flash("잘못된 상태입니다.")
         return redirect(url_for("dashboard"))
 
-    db.session.commit()
-    flash("상태 및 답변이 저장되었습니다.")
-    return redirect("/dashboard")
-    
+    # 실제로 DB에 값 반영
+    ticket.status = new_status
+    if admin_reply:
+        ticket.admin_reply = admin_reply
+
+    try:
+        db.session.commit()
+        flash("상태 및 답변이 저장되었습니다.")
+    except Exception as e:
+        db.session.rollback()
+        print("TICKET STATUS ERROR:", e)
+        flash("저장 중 오류가 발생했습니다.", "danger")
+
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/admin/ticket/<int:ticket_id>/delete", methods=["POST"])
