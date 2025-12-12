@@ -135,6 +135,8 @@ class ContactTicket(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User")
+    admin_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    admin = db.relationship("User", foreign_keys=[admin_id])
 
 class NoticeComment(db.Model):
     __tablename__ = "notice_comments"
