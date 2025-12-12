@@ -45,7 +45,18 @@
         {% endif %}
     </div>
 
-    <div style="font-size:12px;color:#666;">
+    <div style="font-size:12px;color:#666; margin-top:4px;">
+        {# 작성자 닉네임 + 칭호 #}
+        {% if p.author %}
+            <span class="nickname-label"
+                  style="background: {{ p.author.display_color or '#444' }};">
+                {{ p.author.username }}
+            </span>
+            {% if p.author.title %}
+                <span class="title-badge">{{ p.author.title }}</span>
+            {% endif %}
+            &nbsp;•&nbsp;
+        {% endif %}
         {{ p.created_at.strftime("%Y-%m-%d %H:%M") }}
     </div>
 
@@ -105,7 +116,18 @@
         {% endif %}
     </div>
 
-    <div style="font-size:12px;color:#666;">
+    <div style="font-size:12px;color:#666; margin-top:4px;">
+        {# 작성자 닉네임 + 칭호 #}
+        {% if p.author %}
+            <span class="nickname-label"
+                  style="background: {{ p.author.display_color or '#444' }};">
+                {{ p.author.username }}
+            </span>
+            {% if p.author.title %}
+                <span class="title-badge">{{ p.author.title }}</span>
+            {% endif %}
+            &nbsp;•&nbsp;
+        {% endif %}
         {{ p.created_at.strftime("%Y-%m-%d %H:%M") }}
     </div>
 
