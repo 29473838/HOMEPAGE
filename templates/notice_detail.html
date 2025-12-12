@@ -19,9 +19,19 @@
 <div class="card">
     {% for c in comments %}
         <div style="margin-bottom:10px;">
-            <strong>{{ c.user.username if c.user else c.user_id }}</strong> :
-            <span>{{ c.content }}</span>
-            <span style="font-size:11px;color:#888;"> ({{ c.created_at.strftime("%Y-%m-%d %H:%M") }})</span>
+            <span class="nickname-label"
+                  style="background: {{ c.user.display_color or '#444' }};">
+                {{ c.user.username }}
+            </span>
+    
+            {% if c.user.title %}
+                <span class="title-badge">{{ c.user.title }}</span>
+            {% endif %}
+    
+            : <span>{{ c.content }}</span>
+            <span style="font-size:11px;color:#888;">
+                ({{ c.created_at.strftime("%Y-%m-%d %H:%M") }})
+            </span>
         </div>
     {% else %}
         <p>댓글이 없습니다.</p>
