@@ -3,11 +3,12 @@
 
 {% block content %}
 <h1 class="page-title">프로필 설정</h1>
+
 <div class="card">
     <p>
         현재 닉네임 :
         <span class="nickname-label"
-              style="background: {{ current_user.display_color or '#444' }};">
+              style="background: {{ current_user.display_color or '#444444' }};">
             {{ current_user.username }}
         </span>
 
@@ -32,7 +33,6 @@
             <span style="color:#27ae60;">정상</span>
         {% endif %}<br>
 
-        {# 정지 이력: banned_until 기준으로 간단히 표시 #}
         <strong>정지 이력:</strong>
         {% if current_user.banned_until %}
             마지막 정지 해제 예정일:
@@ -46,4 +46,17 @@
 
     <form method="post">
         <label>닉네임 변경</label>
-        <input type="text" na
+        <input type="text" name="username" value="{{ current_user.username }}">
+
+        <label>닉네임 색상</label>
+        <input type="color" name="display_color" value="{{ current_user.display_color or '#444444' }}">
+
+        <label>칭호 (프로필/공지/댓글 등에 표시될 타이틀)</label>
+        <input type="text" name="title"
+               value="{{ current_user.title or '' }}"
+               placeholder="예: 운영자, STAFF, Time Traveler 등">
+
+        <button type="submit" class="btn">저장</button>
+    </form>
+</div>
+{% endblock %}
