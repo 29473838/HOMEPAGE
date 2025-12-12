@@ -124,19 +124,22 @@ class QNA(db.Model):
 
 class ContactTicket(db.Model):
     __tablename__ = "contact_tickets"
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     category = db.Column(db.String(50))
     email_reply_to = db.Column(db.String(100))
     subject = db.Column(db.String(200))
     content = db.Column(db.Text)
+
     admin_reply = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default="대기중")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship("User")
+    user = db.relationship("User", foreign_keys=[user_id])
     admin_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     admin = db.relationship("User", foreign_keys=[admin_id])
+
 
 class NoticeComment(db.Model):
     __tablename__ = "notice_comments"
