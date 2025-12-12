@@ -114,9 +114,9 @@ class QNA(db.Model):
     answered_at = db.Column(db.DateTime, nullable=True)
 
     is_hot = db.Column(db.Boolean, default=False)
+    attachment = db.Column(db.String(300))
+    attachment_type = db.Column(db.String(20))
 
-    attachment = db.Column(db.String(300))     
-    attachment_type = db.Column(db.String(20))  
     author = db.relationship("User", foreign_keys=[author_id])
     answer_admin_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     answer_admin = db.relationship("User", foreign_keys=[answer_admin_id])
