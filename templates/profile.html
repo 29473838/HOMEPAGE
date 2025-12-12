@@ -6,19 +6,44 @@
 <div class="card">
     <p>
         현재 닉네임 :
-        <span class="nickname-label" style="background: {{ current_user.display_color }};">
+        <span class="nickname-label"
+              style="background: {{ current_user.display_color or '#444' }};">
             {{ current_user.username }}
         </span>
-        <span style="font-size:12px;color:#666;"> (직급: {{ current_user.role }})</span>
+
+        {# 칭호(타이틀) 있으면 배지처럼 표시 #}
+        {% if current_user.title %}
+            <span class="title-badge">{{ current_user.title }}</span>
+        {% endif %}
+
+        <span style="font-size:12px;color:#666;">
+            (직급: {{ current_user.role }})
+        </span>
     </p>
+
+    <hr style="margin: 10px 0;">
+
+    <p style="font-size:14px;color:#444;line-height:1.6;">
+        <strong>현재 경고 수:</strong> {{ current_user.warnings or 0 }} 회<br>
+        <strong>정지 상태:</strong>
+        {% if current_user.is_banned %}
+            <span style="color:#e74c3c;">정지됨</span>
+        {% else %}
+            <span style="color:#27ae60;">정상</span>
+        {% endif %}<br>
+
+        {# 정지 이력: banned_until 기준으로 간단히 표시 #}
+        <strong>정지 이력:</strong>
+        {% if current_user.banned_until %}
+            마지막 정지 해제 예정일:
+            {{ current_user.banned_until.strftime("%Y-%m-%d %H:%M") }}
+        {% else %}
+            정지 이력이 없습니다.
+        {% endif %}
+    </p>
+
+    <hr style="margin: 10px 0;">
+
     <form method="post">
         <label>닉네임 변경</label>
-        <input type="text" name="username" value="{{ current_user.username }}">
-
-        <label>닉네임 색상</label>
-        <input type="color" name="display_color" value="{{ current_user.display_color }}">
-
-        <button type="submit" class="btn">저장</button>
-    </form>
-</div>
-{% endblock %}
+        <input type="text" na
