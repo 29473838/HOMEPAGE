@@ -8,7 +8,7 @@
 <div class="card">
     <h3>현재 상태</h3>
 
-    {% if current_stream and current_stream.status == "방송중" %}
+    {% if current_stream && current_stream.status == "방송중" %}
         <p style="margin-bottom:8px;">
             <strong>상태:</strong>
             <span style="color:#e53935; font-weight:bold;">● 방송중</span>
@@ -117,18 +117,22 @@
                             {# 이 날의 방송 일정 #}
                             {% set day_schedules = schedule_by_day.get(day_num, []) %}
                             {% for s in day_schedules %}
-                                <div style="margin-top:2px; text-align:left;">
-                                    <span style="font-size:11px; font-weight:bold;">
-                                        [{{ s.platform }}]
-                                    </span>
-                                    <span style="font-size:11px;">
-                                        {{ s.title }}
-                                    </span>
-                                    <div style="font-size:10px; color:#666; margin-left:2px;">
-                                        {{ s.start_at.strftime("%H:%M") }}
-                                        {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
+                                {% if s.status != "취소" %}
+                                    <div style="margin-top:2px; text-align:left;
+                                                border-radius:4px; padding:2px 3px;
+                                                background: {{ s.color or '#e3f2fd' }};">
+                                        <span style="font-size:11px; font-weight:bold;">
+                                            [{{ s.platform }}]
+                                        </span>
+                                        <span style="font-size:11px;">
+                                            {{ s.title }}
+                                        </span>
+                                        <div style="font-size:10px; color:#222; margin-left:2px;">
+                                            {{ s.start_at.strftime("%H:%M") }}
+                                            {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
+                                        </div>
                                     </div>
-                                </div>
+                                {% endif %}
                             {% endfor %}
                         {% endif %}
 
@@ -145,15 +149,80 @@
     <h3>이번 달 방송 일정 목록</h3>
     {% if schedules %}
         {% for s in schedules %}
-            <div style="border-bottom:1px solid #eee; padding:6px 0; font-size:14px;">
-                <strong>[{{ s.platform }}]</strong> {{ s.title }}
-                <span style="font-size:12px;color:#666;">
-                    / {{ s.start_at.strftime("%Y-%m-%d %H:%M") }}
-                    {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
-                </span>
-                {% if s.memo %}
-                    <div style="font-size:12px;color:#555;">메모: {{ s.memo }}</div>
-                {% endif %}
+            <div style="border-bottom:1px solid #eee; padding:8px 0; font-size:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                    <div>
+                        <span style="display:inline-block; width:10px; height:10px;
+                                     border-radius:50%; background: {{ s.color or '#e3f2fd' }};
+                                     margin-right:4px;"></span>
+                        <strong>[{{ s.platform }}]</strong> {{ s.title }}
+                        <span style="font-size:12px;color:#666;">
+                            / {{ s.start_at.strftime("%Y-%m-%d %H:%M") }}
+                            {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
+                        </span>
+                        {% if s.memo %}
+                            <div style="font-size:12px;color:#555;">메모: {{ s.memo }}</div>
+                        {% endif %}
+
+                        <div style="font-size:12px; margin-top:2px;">
+                            상태:
+                            {% if s.status == "취소" %}
+                                <span style="color:#e53935;">취소</span>
+                            {% else %}
+                                <span style="color:#4caf50;">정상</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+                        <details style="font-size:12px; min-width:230px;">
+                            <summary style="cursor:pointer;">수정 / 취소하기</summary>
+                            <form method="post"
+                                  action="{{ url_for('stream_schedule_update', schedule_id=s.id) }}"
+                                  style="margin-top:4px; text-align:left;">
+
+                                <label style="display:block;">제목</label>
+                                <input type="text" name="title" value="{{ s.title }}" style="width:100%;">
+
+                                <label style="display:block; margin-top:4px;">플랫폼</label>
+                                <select name="platform" style="width:100%;">
+                                    <option value="치지직" {% if s.platform == "치지직" %}selected{% endif %}>치지직</option>
+                                    <option value="숲" {% if s.platform == "숲" %}selected{% endif %}>숲</option>
+                                    <option value="유튜브" {% if s.platform == "유튜브" %}selected{% endif %}>유튜브</option>
+                                </select>
+
+                                <label style="display:block; margin-top:4px;">시작 일시</label>
+                                <input type="datetime-local" name="start_at"
+                                       value="{{ s.start_at.strftime('%Y-%m-%dT%H:%M') }}"
+                                       style="width:100%;">
+
+                                <label style="display:block; margin-top:4px;">종료 일시 (선택)</label>
+                                <input type="datetime-local" name="end_at"
+                                       value="{{ s.end_at.strftime('%Y-%m-%dT%H:%M') if s.end_at else '' }}"
+                                       style="width:100%;">
+
+                                <label style="display:block; margin-top:4px;">메모 (선택)</label>
+                                <input type="text" name="memo"
+                                       value="{{ s.memo or '' }}" style="width:100%;">
+
+                                <label style="display:block; margin-top:4px;">표시 색상</label>
+                                <input type="color" name="color"
+                                       value="{{ s.color or '#42a5f5' }}"
+                                       style="width:100%; padding:0;">
+
+                                <label style="display:block; margin-top:4px;">상태</label>
+                                <select name="status" style="width:100%;">
+                                    <option value="정상" {% if s.status == "정상" %}selected{% endif %}>정상</option>
+                                    <option value="취소" {% if s.status == "취소" %}selected{% endif %}>취소</option>
+                                </select>
+
+                                <button type="submit" class="btn-small" style="margin-top:6px;">
+                                    변경 저장
+                                </button>
+                            </form>
+                        </details>
+                    {% endif %}
+                </div>
             </div>
         {% endfor %}
     {% else %}
@@ -219,10 +288,17 @@
         <label>메모 (선택)</label>
         <input type="text" name="memo">
 
+        <label>표시 색상 (선택)</label>
+        <input type="color" name="color" value="#42a5f5">
+
         <button type="submit" class="btn" style="margin-top:10px;">일정 추가</button>
     </form>
 </div>
 {% endif %}
 
 {% endblock %}
+
+
+{% endblock %}
+
 
