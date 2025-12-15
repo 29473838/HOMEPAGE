@@ -731,6 +731,9 @@ def inject_stream_info():
     return dict(current_stream=status, upcoming_streams=upcoming)
 
 
+import calendar
+from datetime import datetime, date
+
 @app.route("/stream", methods=["GET", "POST"])
 @login_required
 def stream_page():
@@ -741,8 +744,9 @@ def stream_page():
 
         form_type = request.form.get("form_type")
 
+        # 방송 상태 수정
         if form_type == "status":
-            status = request.form.get("status") 
+            status = request.form.get("status")
             platform = request.form.get("platform") or None
             url = request.form.get("url") or None
             thumb = request.form.get("thumbnail_url") or None
@@ -767,6 +771,7 @@ def stream_page():
             flash("방송 상태가 저장되었습니다.", "success")
             return redirect(url_for("stream_page"))
 
+        # 방송 일정 추가
         elif form_type == "schedule_add":
             title = request.form.get("title")
             platform = request.form.get("platform")
@@ -777,6 +782,7 @@ def stream_page():
             if not title or not platform or not start_at_str:
                 flash("필수 항목이 비어 있습니다.", "danger")
                 return redirect(url_for("stream_page"))
+
             try:
                 start_at = datetime.strptime(start_at_str, "%Y-%m-%dT%H:%M")
                 end_at = datetime.strptime(end_at_str, "%Y-%m-%dT%H:%M") if end_at_str else None
@@ -795,8 +801,56 @@ def stream_page():
             db.session.commit()
             flash("방송 일정이 추가되었습니다.", "success")
             return redirect(url_for("stream_page"))
-    schedules = StreamSchedule.query.order_by(StreamSchedule.start_at.asc()).all()
-    return render_template("stream.html", schedules=schedules)
+
+    today = datetime.utcnow().date()
+    year = request.args.get("year", type=int) or today.year
+    month = request.args.get("month", type=int) or today.month
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = list(cal.itermonthdates(year, month))
+
+    # 이번 달 범위
+    month_start = datetime(year, month, 1)
+    if month == 12:
+        month_end = datetime(year + 1, 1, 1)
+    else:
+        month_end = datetime(year, month + 1, 1)
+    schedules_in_month = (
+        StreamSchedule.query
+        .filter(StreamSchedule.start_at >= month_start,
+                StreamSchedule.start_at < month_end)
+        .order_by(StreamSchedule.start_at.asc())
+        .all()
+    )
+    schedule_by_day = {}
+    for s in schedules_in_month:
+        day = s.start_at.day
+        schedule_by_day.setdefault(day, []).append(s)
+
+    weeks = []
+    week = []
+    for d in month_days:
+        if d.month != month:
+            week.append(d)
+        else:
+            week.append(d)
+
+        if len(week) == 7:
+            weeks.append(week)
+            week = []
+    if week:
+        weeks.append(week)
+
+    schedules = schedules_in_month
+
+    return render_template(
+        "stream.html",
+        schedules=schedules,
+        year=year,
+        month=month,
+        weeks=weeks,
+        schedule_by_day=schedule_by_day,
+        today=today,
+    )
 
 @app.route("/stream/schedule/delete/<int:schedule_id>", methods=["POST"])
 @login_required
