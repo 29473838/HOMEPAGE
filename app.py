@@ -13,7 +13,6 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
 
-# --- PostgreSQL 설정 ---
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
@@ -41,7 +40,6 @@ def admin_required(f):
 
 from werkzeug.utils import secure_filename
 
-# 업로드 폴더 설정
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads", "qna")
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -71,7 +69,7 @@ class Role(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    permissions = db.Column(db.String(500))  # 예: "notice_write,warning_manage"
+    permissions = db.Column(db.String(500)) 
 
 
 class User(db.Model, UserMixin):
@@ -248,8 +246,6 @@ def contact_page():
 
         flash("문의가 정상적으로 접수되었습니다!")
         return redirect("/contact")
-
-    # 🔥 로그인한 유저의 문의 내역 가져오기
     my_tickets = ContactTicket.query.filter_by(
         user_id=current_user.id
     ).order_by(ContactTicket.created_at.desc()).all()
@@ -346,8 +342,6 @@ def admin_user_delete(user_id):
 @admin_required
 def admin_user_force_logout(user_id):
     user = User.query.get_or_404(user_id)
-
-    # 세션을 강제로 끊는 처리 → banned_until을 현재시간으로 설정
     user.is_banned = True
     user.banned_until = datetime.utcnow()
     db.session.commit()
@@ -367,17 +361,13 @@ def admin_ticket_status(ticket_id):
         flash("문의 기록을 찾을 수 없습니다.")
         return redirect(url_for("dashboard"))
 
-    # 폼에서 넘어온 값
     new_status = request.form.get("status")
     admin_reply = request.form.get("answer", "").strip()
 
-    # 상태 값 검증
     allowed_status = ["대기중", "처리중", "처리완료", "처리불가"]
     if new_status not in allowed_status:
         flash("잘못된 상태입니다.")
         return redirect(url_for("dashboard"))
-
-    # 실제로 DB에 값 반영
     ticket.status = new_status
     if admin_reply:
         ticket.admin_reply = admin_reply
@@ -417,8 +407,6 @@ def admin_user_unwarn(user_id):
         return redirect(url_for("dashboard"))
 
     user = User.query.get_or_404(user_id)
-
-    # 경고 차감 (0 미만으로 내려가지 않게 방지)
     if user.warnings > 0:
         user.warnings -= 1
         db.session.commit()
