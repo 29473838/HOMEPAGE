@@ -713,11 +713,14 @@ class StreamSchedule(db.Model):
     __tablename__ = "stream_schedule"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))             
-    platform = db.Column(db.String(20))         
+    title = db.Column(db.String(100), nullable=False)
+    platform = db.Column(db.String(20), nullable=False)
     start_at = db.Column(db.DateTime, nullable=False)
     end_at = db.Column(db.DateTime, nullable=True)
     memo = db.Column(db.String(200), nullable=True)
+    status = db.Column(db.String(20), default="정상")   
+    color  = db.Column(db.String(20), default="#42a5f5") 
+
 
 @app.context_processor
 def inject_stream_info():
@@ -737,6 +740,7 @@ from datetime import datetime, date
 @app.route("/stream", methods=["GET", "POST"])
 @login_required
 def stream_page():
+    # ------------------ POST: 상태 / 일정 추가 ------------------
     if request.method == "POST":
         if current_user.role not in ["대표", "부대표", "매니저"]:
             flash("관리자만 방송 정보를 수정할 수 있습니다.", "danger")
@@ -744,7 +748,7 @@ def stream_page():
 
         form_type = request.form.get("form_type")
 
-        # 방송 상태 수정
+        # 🔹 방송 상태 수정
         if form_type == "status":
             status = request.form.get("status")
             platform = request.form.get("platform") or None
@@ -771,13 +775,14 @@ def stream_page():
             flash("방송 상태가 저장되었습니다.", "success")
             return redirect(url_for("stream_page"))
 
-        # 방송 일정 추가
+        # 🔹 방송 일정 추가
         elif form_type == "schedule_add":
             title = request.form.get("title")
             platform = request.form.get("platform")
             start_at_str = request.form.get("start_at")
             end_at_str = request.form.get("end_at") or None
             memo = request.form.get("memo") or None
+            color = request.form.get("color") or "#42a5f5"   # ← 색상 추가
 
             if not title or not platform or not start_at_str:
                 flash("필수 항목이 비어 있습니다.", "danger")
@@ -796,24 +801,35 @@ def stream_page():
                 start_at=start_at,
                 end_at=end_at,
                 memo=memo,
+                status="정상",      # 기본값
+                color=color,
             )
             db.session.add(s)
             db.session.commit()
             flash("방송 일정이 추가되었습니다.", "success")
             return redirect(url_for("stream_page"))
 
+        # 그 외 잘못된 form_type
+        else:
+            flash("잘못된 요청입니다.", "danger")
+            return redirect(url_for("stream_page"))
+
+    # ------------------ GET: 달력용 데이터 준비 ------------------
     today = datetime.utcnow().date()
     year = request.args.get("year", type=int) or today.year
     month = request.args.get("month", type=int) or today.month
-    cal = calendar.Calendar(firstweekday=0)
-    month_days = list(cal.itermonthdates(year, month))
 
-    # 이번 달 범위
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = list(cal.itermonthdates(year, month))  # 앞/뒤 달 일부 포함
+
+    # 이번 달 범위 (해당 달 1일 ~ 다음 달 1일 직전)
     month_start = datetime(year, month, 1)
     if month == 12:
         month_end = datetime(year + 1, 1, 1)
     else:
         month_end = datetime(year, month + 1, 1)
+
+    # 이 달에 속하는 일정만
     schedules_in_month = (
         StreamSchedule.query
         .filter(StreamSchedule.start_at >= month_start,
@@ -821,19 +837,18 @@ def stream_page():
         .order_by(StreamSchedule.start_at.asc())
         .all()
     )
+
+    # 날짜별로 묶기: { day(int): [schedule, ...] }
     schedule_by_day = {}
     for s in schedules_in_month:
         day = s.start_at.day
         schedule_by_day.setdefault(day, []).append(s)
 
+    # 달력 주(week) 단위로 자르기
     weeks = []
     week = []
     for d in month_days:
-        if d.month != month:
-            week.append(d)
-        else:
-            week.append(d)
-
+        week.append(d)
         if len(week) == 7:
             weeks.append(week)
             week = []
@@ -852,15 +867,39 @@ def stream_page():
         today=today,
     )
 
-@app.route("/stream/schedule/delete/<int:schedule_id>", methods=["POST"])
+@app.route("/stream/schedule/update/<int:schedule_id>", methods=["POST"])
 @login_required
-def stream_schedule_delete(schedule_id):
+def stream_schedule_update(schedule_id):
     if current_user.role not in ["대표", "부대표", "매니저"]:
-        flash("관리자만 삭제할 수 있습니다.", "danger")
+        flash("관리자만 방송 일정을 수정할 수 있습니다.", "danger")
         return redirect(url_for("stream_page"))
 
     s = StreamSchedule.query.get_or_404(schedule_id)
-    db.session.delete(s)
+
+    s.title = request.form.get("title", s.title)
+    s.platform = request.form.get("platform", s.platform)
+    s.memo = request.form.get("memo", s.memo)
+    s.color = request.form.get("color", s.color)
+
+    new_status = request.form.get("status", s.status)
+    if new_status in ["정상", "취소"]:
+        s.status = new_status
+
+    start_at_str = request.form.get("start_at")
+    end_at_str = request.form.get("end_at")
+
+    try:
+        if start_at_str:
+            s.start_at = datetime.strptime(start_at_str, "%Y-%m-%dT%H:%M")
+        if end_at_str:
+            s.end_at = datetime.strptime(end_at_str, "%Y-%m-%dT%H:%M")
+        else:
+            s.end_at = None
+    except ValueError:
+        flash("날짜/시간 형식이 올바르지 않습니다.", "danger")
+        return redirect(url_for("stream_page"))
+
     db.session.commit()
-    flash("일정이 삭제되었습니다.", "success")
+    flash("방송 일정이 수정되었습니다.", "success")
     return redirect(url_for("stream_page"))
+
