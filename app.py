@@ -721,10 +721,7 @@ class StreamSchedule(db.Model):
 
 @app.context_processor
 def inject_stream_info():
-    # 최신 상태 1개만 사용
     status = StreamStatus.query.order_by(StreamStatus.updated_at.desc()).first()
-
-    # 앞으로 있을 방송 일정 몇 개만 가져오기 (예: 7개)
     now = datetime.utcnow()
     upcoming = StreamSchedule.query.filter(StreamSchedule.start_at >= now) \
                                    .order_by(StreamSchedule.start_at.asc()) \
@@ -732,4 +729,72 @@ def inject_stream_info():
                                    .all()
 
     return dict(current_stream=status, upcoming_streams=upcoming)
+
+
+@app.route("/stream", methods=["GET", "POST"])
+@login_required
+def stream_page():
+    if request.method == "POST":
+        if current_user.role not in ["대표", "부대표", "매니저"]:
+            flash("관리자만 방송 정보를 수정할 수 있습니다.", "danger")
+            return redirect(url_for("stream_page"))
+
+        form_type = request.form.get("form_type")
+
+        if form_type == "status":
+            status = request.form.get("status") 
+            platform = request.form.get("platform") or None
+            url = request.form.get("url") or None
+            thumb = request.form.get("thumbnail_url") or None
+
+            if status not in ["방송중", "녹화중", "업무중", "휴식중", "오프라인"]:
+                flash("잘못된 상태입니다.", "danger")
+                return redirect(url_for("stream_page"))
+
+            cur = StreamStatus.query.order_by(StreamStatus.updated_at.desc()).first()
+            if not cur:
+                cur = StreamStatus()
+
+            cur.status = status
+            cur.platform = platform if status == "방송중" else None
+            cur.url = url if status == "방송중" else None
+            cur.thumbnail_url = thumb if status == "방송중" else None
+            cur.updated_at = datetime.utcnow()
+            cur.updated_by_id = current_user.id
+
+            db.session.add(cur)
+            db.session.commit()
+            flash("방송 상태가 저장되었습니다.", "success")
+            return redirect(url_for("stream_page"))
+
+        elif form_type == "schedule_add":
+            title = request.form.get("title")
+            platform = request.form.get("platform")
+            start_at_str = request.form.get("start_at")
+            end_at_str = request.form.get("end_at") or None
+            memo = request.form.get("memo") or None
+
+            if not title or not platform or not start_at_str:
+                flash("필수 항목이 비어 있습니다.", "danger")
+                return redirect(url_for("stream_page"))
+            try:
+                start_at = datetime.strptime(start_at_str, "%Y-%m-%dT%H:%M")
+                end_at = datetime.strptime(end_at_str, "%Y-%m-%dT%H:%M") if end_at_str else None
+            except ValueError:
+                flash("날짜/시간 형식이 올바르지 않습니다.", "danger")
+                return redirect(url_for("stream_page"))
+
+            s = StreamSchedule(
+                title=title,
+                platform=platform,
+                start_at=start_at,
+                end_at=end_at,
+                memo=memo,
+            )
+            db.session.add(s)
+            db.session.commit()
+            flash("방송 일정이 추가되었습니다.", "success")
+            return redirect(url_for("stream_page"))
+    schedules = StreamSchedule.query.order_by(StreamSchedule.start_at.asc()).all()
+    return render_template("stream.html", schedules=schedules)
 
