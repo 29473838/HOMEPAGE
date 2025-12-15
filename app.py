@@ -798,3 +798,15 @@ def stream_page():
     schedules = StreamSchedule.query.order_by(StreamSchedule.start_at.asc()).all()
     return render_template("stream.html", schedules=schedules)
 
+@app.route("/stream/schedule/delete/<int:schedule_id>", methods=["POST"])
+@login_required
+def stream_schedule_delete(schedule_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("관리자만 삭제할 수 있습니다.", "danger")
+        return redirect(url_for("stream_page"))
+
+    s = StreamSchedule.query.get_or_404(schedule_id)
+    db.session.delete(s)
+    db.session.commit()
+    flash("일정이 삭제되었습니다.", "success")
+    return redirect(url_for("stream_page"))
