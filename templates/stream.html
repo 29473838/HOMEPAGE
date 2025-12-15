@@ -30,7 +30,6 @@
                 </a>
             </p>
         {% endif %}
-
     {% else %}
         <p>
             <strong>상태:</strong>
@@ -55,59 +54,122 @@
     {% endif %}
 </div>
 
-{# 방송 일정(캘린더 느낌) #}
+{# ====== 방송 일정 달력 ====== #}
 <div class="card" style="margin-top:20px;">
-    <h3>방송 일정</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        {# 이전/다음 달 이동 #}
+        {% set prev_year = year %}
+        {% set prev_month = month - 1 %}
+        {% if prev_month == 0 %}
+            {% set prev_month = 12 %}
+            {% set prev_year = year - 1 %}
+        {% endif %}
 
+        {% set next_year = year %}
+        {% set next_month = month + 1 %}
+        {% if next_month == 13 %}
+            {% set next_month = 1 %}
+            {% set next_year = year + 1 %}
+        {% endif %}
+
+        <a href="{{ url_for('stream_page', year=prev_year, month=prev_month) }}" class="btn-small">
+            ◀ 이전 달
+        </a>
+
+        <h3 style="margin:0;">
+            {{ year }}년 {{ "%02d"|format(month) }}월 방송 일정
+        </h3>
+
+        <a href="{{ url_for('stream_page', year=next_year, month=next_month) }}" class="btn-small">
+            다음 달 ▶
+        </a>
+    </div>
+
+    <table style="width:100%; border-collapse:collapse; text-align:center; table-layout:fixed;">
+        <thead>
+            <tr>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd; color:#e53935;">월</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd;">화</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd;">수</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd;">목</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd;">금</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd; color:#1e88e5;">토</th>
+                <th style="padding:4px 0; border-bottom:1px solid #ddd; color:#e53935;">일</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in weeks %}
+            <tr>
+                {% for d in week %}
+                    {% set is_this_month = (d.month == month) %}
+                    {% set day_num = d.day if is_this_month else '' %}
+                    {% set is_today = (d == today) %}
+
+                    <td style="vertical-align:top; border-bottom:1px solid #eee; border-right:1px solid #f5f5f5; padding:4px; font-size:12px;
+                               background: {% if not is_this_month %}#fafafa{% else %}#ffffff{% endif %};">
+
+                        {% if day_num %}
+                            <div style="text-align:right; font-weight:bold;
+                                        {% if is_today %}color:#e53935;{% else %}color:#333;{% endif %}">
+                                {{ day_num }}
+                            </div>
+
+                            {# 이 날의 방송 일정 #}
+                            {% set day_schedules = schedule_by_day.get(day_num, []) %}
+                            {% for s in day_schedules %}
+                                <div style="margin-top:2px; text-align:left;">
+                                    <span style="font-size:11px; font-weight:bold;">
+                                        [{{ s.platform }}]
+                                    </span>
+                                    <span style="font-size:11px;">
+                                        {{ s.title }}
+                                    </span>
+                                    <div style="font-size:10px; color:#666; margin-left:2px;">
+                                        {{ s.start_at.strftime("%H:%M") }}
+                                        {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ====== 이번 달 일정 리스트 (보기 편하게) ====== #}
+<div class="card" style="margin-top:20px;">
+    <h3>이번 달 방송 일정 목록</h3>
     {% if schedules %}
-        {% set current_date = None %}
         {% for s in schedules %}
-            {% set date_str = s.start_at.strftime("%Y-%m-%d") %}
-            {% if date_str != current_date %}
-                {% if not loop.first %}
-                    <hr>
-                {% endif %}
-                <h4 style="margin-top:10px;">📅 {{ date_str }}</h4>
-                {% set current_date = date_str %}
-            {% endif %}
-
-            <div style="padding:4px 0; font-size:14px;">
-                <strong>[{{ s.platform }}]</strong>
-                {{ s.title }}
+            <div style="border-bottom:1px solid #eee; padding:6px 0; font-size:14px;">
+                <strong>[{{ s.platform }}]</strong> {{ s.title }}
                 <span style="font-size:12px;color:#666;">
-                    / {{ s.start_at.strftime("%H:%M") }}
+                    / {{ s.start_at.strftime("%Y-%m-%d %H:%M") }}
                     {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
                 </span>
                 {% if s.memo %}
-                    <div style="font-size:12px;color:#555;margin-left:4px;">
-                        메모: {{ s.memo }}
-                    </div>
-                {% endif %}
-
-                {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
-                    <form method="post"
-                          action="{{ url_for('stream_schedule_delete', schedule_id=s.id) }}"
-                          style="display:inline;"
-                          onsubmit="return confirm('이 방송 일정을 삭제하시겠습니까?');">
-                        <button type="submit" class="btn-small danger">삭제</button>
-                    </form>
+                    <div style="font-size:12px;color:#555;">메모: {{ s.memo }}</div>
                 {% endif %}
             </div>
         {% endfor %}
     {% else %}
-        <p>등록된 방송 일정이 없습니다.</p>
+        <p>이번 달에 등록된 방송 일정이 없습니다.</p>
     {% endif %}
 </div>
 
-{# 관리자 전용: 상태/일정 입력 폼 #}
+{# ====== 관리자 전용 폼 (상태/일정 추가) ====== #}
 {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
 <div class="card" style="margin-top:20px;">
     <h3>관리자: 방송 상태 설정</h3>
     <form method="post">
         <input type="hidden" name="form_type" value="status">
         <label>상태</label>
+        {% set cur_status = current_stream.status if current_stream else "오프라인" %}
         <select name="status">
-            {% set cur_status = current_stream.status if current_stream else "오프라인" %}
             <option value="방송중"  {% if cur_status == "방송중" %}selected{% endif %}>방송중</option>
             <option value="녹화중"  {% if cur_status == "녹화중" %}selected{% endif %}>녹화중</option>
             <option value="업무중"  {% if cur_status == "업무중" %}selected{% endif %}>업무중</option>
@@ -116,8 +178,8 @@
         </select>
 
         <label>플랫폼 (방송중일 때만 사용)</label>
+        {% set cur_plat = current_stream.platform if current_stream else "" %}
         <select name="platform">
-            {% set cur_plat = current_stream.platform if current_stream else "" %}
             <option value="" {% if not cur_plat %}selected{% endif %}>선택 안 함</option>
             <option value="치지직" {% if cur_plat == "치지직" %}selected{% endif %}>치지직</option>
             <option value="숲"   {% if cur_plat == "숲" %}selected{% endif %}>숲</option>
@@ -163,3 +225,4 @@
 {% endif %}
 
 {% endblock %}
+
