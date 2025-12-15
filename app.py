@@ -428,9 +428,9 @@ def admin_user_unwarn(user_id):
 
     return redirect(url_for("dashboard"))
 
-
-
-# ---- 회원가입 ----
+# ==============================================
+# 회원가입
+# ==============================================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -457,7 +457,9 @@ def register():
     return render_template("register.html")
 
 
-# ---- 로그인 ----
+# ==============================================
+# 로그인
+# ==============================================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -475,8 +477,6 @@ def login():
 
     return render_template("login.html")
 
-
-# ---- 로그아웃 ----
 @app.route("/logout")
 @login_required
 def logout():
@@ -496,7 +496,6 @@ def notice_list():
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
 def notice_write():
-    # 권한: notice_write
     if not inject_permission_checker()["has_permission"](current_user, "notice_write"):
         abort(403)
 
@@ -517,7 +516,6 @@ def notice_write():
 @app.route("/notice/delete/<int:notice_id>", methods=["POST"])
 @login_required
 def notice_delete(notice_id):
-    # 권한 체크: notice_write 가진 사람만 삭제 가능
     if not inject_permission_checker()["has_permission"](current_user, "notice_write"):
         abort(403)
 
@@ -582,7 +580,6 @@ def notice_detail(notice_id):
 # ==============================================
 @app.route("/qna", methods=["GET", "POST"])
 def qna_list():
-    # ----- QNA 작성 (POST) -----
     if request.method == "POST":
         if not current_user.is_authenticated:
             flash("로그인 후에 Q&A를 작성할 수 있습니다.")
@@ -595,7 +592,6 @@ def qna_list():
         attachment = None
         attachment_type = None
 
-        # 파일 업로드 처리
         if file and file.filename:
             if not allowed_file(file.filename):
                 flash("허용되지 않은 파일 형식입니다. (이미지: png/jpg/jpeg/gif, 영상: mp4/webm/ogg)")
@@ -603,7 +599,6 @@ def qna_list():
 
             filename = secure_filename(file.filename)
             name, ext = os.path.splitext(filename)
-            # 파일명 중복 방지를 위해 시간 붙이기
             filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{name}{ext}"
             save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(save_path)
@@ -613,7 +608,7 @@ def qna_list():
 
         q = QNA(
             author_id=current_user.id,
-            email=current_user.email,  # 폼에서 이메일 안 받아도 됨
+            email=current_user.email, 
             title=title,
             content=content,
             attachment=attachment,
@@ -624,8 +619,6 @@ def qna_list():
         flash("Q&A가 등록되었습니다.")
         return redirect(url_for("qna_list"))
 
-    # ----- QNA 목록 (GET) -----
-    # HOT QNA (최대 10개)
     hot_qnas = (
         QNA.query.filter_by(is_hot=True)
         .order_by(QNA.created_at.desc())
@@ -633,7 +626,6 @@ def qna_list():
         .all()
     )
 
-    # 일반 QNA (HOT 아닌 것들)
     normal_qnas = (
         QNA.query.filter((QNA.is_hot == False) | (QNA.is_hot.is_(None)))
         .order_by(QNA.created_at.desc())
@@ -647,7 +639,6 @@ def qna_list():
 @app.route("/qna/write", methods=["GET", "POST"])
 @login_required
 def qna_write():
-    # 예전 URL로 접근해도 /qna 로 보내기
     return redirect(url_for("qna_list"))
 
 @app.route("/qna/<int:id>/hot", methods=["POST"])
@@ -656,7 +647,6 @@ def qna_toggle_hot(id):
     q = QNA.query.get_or_404(id)
 
     if not q.is_hot:
-        # HOT QNA 개수 확인 (10개 제한)
         hot_count = QNA.query.filter_by(is_hot=True).count()
         if hot_count >= 10:
             flash("HOT Q&A는 최대 10개까지만 지정할 수 있습니다.")
@@ -710,3 +700,48 @@ if __name__ == "__main__":
         db.create_all()
 
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+
+
+# ==============================================
+# 방송
+# ==============================================
+class StreamStatus(db.Model):
+    __tablename__ = "stream_status"
+
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(20), default="오프라인") 
+    platform = db.Column(db.String(20), nullable=True) 
+    url = db.Column(db.String(300), nullable=True)  
+    thumbnail_url = db.Column(db.String(300), nullable=True)  
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    updated_by = db.relationship("User", foreign_keys=[updated_by_id])
+
+
+class StreamSchedule(db.Model):
+    __tablename__ = "stream_schedule"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))             
+    platform = db.Column(db.String(20))         
+    start_at = db.Column(db.DateTime, nullable=False)
+    end_at = db.Column(db.DateTime, nullable=True)
+    memo = db.Column(db.String(200), nullable=True)
+
+@app.context_processor
+def inject_stream_info():
+    # 최신 상태 1개만 사용
+    status = StreamStatus.query.order_by(StreamStatus.updated_at.desc()).first()
+
+    # 앞으로 있을 방송 일정 몇 개만 가져오기 (예: 7개)
+    now = datetime.utcnow()
+    upcoming = StreamSchedule.query.filter(StreamSchedule.start_at >= now) \
+                                   .order_by(StreamSchedule.start_at.asc()) \
+                                   .limit(7) \
+                                   .all()
+
+    return dict(current_stream=status, upcoming_streams=upcoming)
+
