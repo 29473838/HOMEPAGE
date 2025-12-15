@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}방송 정보{% endblock %}
+
+{% block content %}
+<h1 class="page-title">방송 정보</h1>
+
+{# 현재 방송 상태 #}
+<div class="card">
+    <h3>현재 상태</h3>
+
+    {% if current_stream and current_stream.status == "방송중" %}
+        <p style="margin-bottom:8px;">
+            <strong>상태:</strong>
+            <span style="color:#e53935; font-weight:bold;">● 방송중</span>
+            ({{ current_stream.platform }})
+        </p>
+
+        {% if current_stream.thumbnail_url %}
+            <div style="margin-top:8px;">
+                <img src="{{ current_stream.thumbnail_url }}"
+                     alt="현재 방송 화면"
+                     style="max-width:100%; border-radius:10px;">
+            </div>
+        {% endif %}
+
+        {% if current_stream.url %}
+            <p style="margin-top:10px;">
+                <a href="{{ current_stream.url }}" target="_blank" class="btn">
+                    {{ current_stream.platform }} 바로가기
+                </a>
+            </p>
+        {% endif %}
+
+    {% else %}
+        <p>
+            <strong>상태:</strong>
+            <span style="color:#888;">
+                {{ current_stream.status if current_stream else "오프라인" }}
+            </span>
+        </p>
+    {% endif %}
+
+    {% if current_stream and current_stream.updated_by %}
+        <p style="font-size:12px;color:#777;margin-top:8px;">
+            마지막 업데이트:
+            <span class="nickname-label"
+                  style="background: {{ current_stream.updated_by.display_color or '#444' }};">
+                {{ current_stream.updated_by.username }}
+            </span>
+            {% if current_stream.updated_by.title %}
+                <span class="title-badge">{{ current_stream.updated_by.title }}</span>
+            {% endif %}
+            &nbsp;/ {{ current_stream.updated_at.strftime("%Y-%m-%d %H:%M") }}
+        </p>
+    {% endif %}
+</div>
+
+{# 방송 일정(캘린더 느낌) #}
+<div class="card" style="margin-top:20px;">
+    <h3>방송 일정</h3>
+
+    {% if schedules %}
+        {% set current_date = None %}
+        {% for s in schedules %}
+            {% set date_str = s.start_at.strftime("%Y-%m-%d") %}
+            {% if date_str != current_date %}
+                {% if not loop.first %}
+                    <hr>
+                {% endif %}
+                <h4 style="margin-top:10px;">📅 {{ date_str }}</h4>
+                {% set current_date = date_str %}
+            {% endif %}
+
+            <div style="padding:4px 0; font-size:14px;">
+                <strong>[{{ s.platform }}]</strong>
+                {{ s.title }}
+                <span style="font-size:12px;color:#666;">
+                    / {{ s.start_at.strftime("%H:%M") }}
+                    {% if s.end_at %} ~ {{ s.end_at.strftime("%H:%M") }}{% endif %}
+                </span>
+                {% if s.memo %}
+                    <div style="font-size:12px;color:#555;margin-left:4px;">
+                        메모: {{ s.memo }}
+                    </div>
+                {% endif %}
+
+                {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+                    <form method="post"
+                          action="{{ url_for('stream_schedule_delete', schedule_id=s.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('이 방송 일정을 삭제하시겠습니까?');">
+                        <button type="submit" class="btn-small danger">삭제</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>등록된 방송 일정이 없습니다.</p>
+    {% endif %}
+</div>
+
+{# 관리자 전용: 상태/일정 입력 폼 #}
+{% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
+<div class="card" style="margin-top:20px;">
+    <h3>관리자: 방송 상태 설정</h3>
+    <form method="post">
+        <input type="hidden" name="form_type" value="status">
+        <label>상태</label>
+        <select name="status">
+            {% set cur_status = current_stream.status if current_stream else "오프라인" %}
+            <option value="방송중"  {% if cur_status == "방송중" %}selected{% endif %}>방송중</option>
+            <option value="녹화중"  {% if cur_status == "녹화중" %}selected{% endif %}>녹화중</option>
+            <option value="업무중"  {% if cur_status == "업무중" %}selected{% endif %}>업무중</option>
+            <option value="휴식중"  {% if cur_status == "휴식중" %}selected{% endif %}>휴식중</option>
+            <option value="오프라인" {% if cur_status == "오프라인" %}selected{% endif %}>오프라인</option>
+        </select>
+
+        <label>플랫폼 (방송중일 때만 사용)</label>
+        <select name="platform">
+            {% set cur_plat = current_stream.platform if current_stream else "" %}
+            <option value="" {% if not cur_plat %}selected{% endif %}>선택 안 함</option>
+            <option value="치지직" {% if cur_plat == "치지직" %}selected{% endif %}>치지직</option>
+            <option value="숲"   {% if cur_plat == "숲" %}selected{% endif %}>숲</option>
+            <option value="유튜브" {% if cur_plat == "유튜브" %}selected{% endif %}>유튜브</option>
+        </select>
+
+        <label>방송 URL (방송중일 때 이동할 링크)</label>
+        <input type="text" name="url" value="{{ current_stream.url if current_stream else '' }}">
+
+        <label>썸네일 이미지 URL (선택)</label>
+        <input type="text" name="thumbnail_url" value="{{ current_stream.thumbnail_url if current_stream else '' }}">
+
+        <button type="submit" class="btn" style="margin-top:10px;">상태 저장</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <h3>관리자: 방송 일정 추가</h3>
+    <form method="post">
+        <input type="hidden" name="form_type" value="schedule_add">
+        <label>제목</label>
+        <input type="text" name="title" required>
+
+        <label>플랫폼</label>
+        <select name="platform" required>
+            <option value="치지직">치지직</option>
+            <option value="숲">숲</option>
+            <option value="유튜브">유튜브</option>
+        </select>
+
+        <label>시작 일시</label>
+        <input type="datetime-local" name="start_at" required>
+
+        <label>종료 일시 (선택)</label>
+        <input type="datetime-local" name="end_at">
+
+        <label>메모 (선택)</label>
+        <input type="text" name="memo">
+
+        <button type="submit" class="btn" style="margin-top:10px;">일정 추가</button>
+    </form>
+</div>
+{% endif %}
+
+{% endblock %}
