@@ -326,3 +326,18 @@ textarea {
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
+
+/* 비즈니스 */
+.business-page-wrapper {
+    min-height: calc(100vh - 140px); 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  
+    align-items: center;      
+    padding: 20px 0 40px;
+}
+
+.business-card {
+    width: 100%;
+    max-width: 600px;
+}
