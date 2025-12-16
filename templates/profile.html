@@ -3,47 +3,31 @@
 
 {% block content %}
 <h1 class="page-title">프로필 설정</h1>
-
 <div class="card">
     <p>
         현재 닉네임 :
         <span class="nickname-label"
-              style="background: {{ current_user.display_color or '#444444' }};">
+              style="background: {{ current_user.display_color or '#444' }};">
             {{ current_user.username }}
         </span>
         {% if current_user.title %}
             <span class="title-badge {{ current_user.title_style or 'title-style-basic' }}"
-                style="--title-main-color: {{ current_user.title_color or '#ff6fb5' }};">
+                  style="--title-main-color: {{ current_user.title_color or '#ff6fb5' }};">
                 {{ current_user.title }}
             </span>
         {% endif %}
-
-        <span style="font-size:12px;color:#666;">
-            (직급: {{ current_user.role }})
-        </span>
+        <span style="font-size:12px;color:#666;"> (직급: {{ current_user.role }})</span>
     </p>
 
-    <hr style="margin: 10px 0;">
-
-    <p style="font-size:14px;color:#444;line-height:1.6;">
-        <strong>현재 경고 수:</strong> {{ current_user.warnings or 0 }} 회<br>
-        <strong>정지 상태:</strong>
+    <p style="font-size:13px;color:#777;">
+        경고: {{ current_user.warnings or 0 }}회 /
+        정지 상태:
         {% if current_user.is_banned %}
-            <span style="color:#e74c3c;">정지됨</span>
+            <span style="color:#e53935;">정지됨</span>
         {% else %}
-            <span style="color:#27ae60;">정상</span>
-        {% endif %}<br>
-
-        <strong>정지 이력:</strong>
-        {% if current_user.banned_until %}
-            마지막 정지 해제 예정일:
-            {{ current_user.banned_until.strftime("%Y-%m-%d %H:%M") }}
-        {% else %}
-            정지 이력이 없습니다.
+            <span style="color:#4caf50;">정상</span>
         {% endif %}
     </p>
-
-    <hr style="margin: 10px 0;">
 
     <form method="post">
         <label>닉네임 변경</label>
@@ -55,20 +39,19 @@
         <hr style="margin:15px 0;">
 
         <label>칭호 텍스트</label>
-        <input type="text" name="title"
-               value="{{ current_user.title or '' }}"
-               placeholder="예: Streamer, STAFF, Time Traveler 등">
+        <input type="text" name="title_text" value="{{ current_user.title or '' }}" placeholder="예: STREAMER, MANAGER">
 
         <label>칭호 스타일</label>
         <select name="title_style">
-            <option value="basic" {% if current_user.title_style == 'basic' %}selected{% endif %}>기본 뱃지</option>
-            <option value="pill" {% if current_user.title_style == 'pill' %}selected{% endif %}>둥근 알약형</option>
+            <option value="basic"   {% if current_user.title_style == 'basic' %}selected{% endif %}>기본 뱃지</option>
+            <option value="pill"    {% if current_user.title_style == 'pill' %}selected{% endif %}>둥근 알약형</option>
             <option value="outline" {% if current_user.title_style == 'outline' %}selected{% endif %}>테두리만 있는 뱃지</option>
-            <option value="ribbon" {% if current_user.title_style == 'ribbon' %}selected{% endif %}>리본형</option>
-            <option value="glow" {% if current_user.title_style == 'glow' %}selected{% endif %}>네온</option>
-            
+            <option value="ribbon"  {% if current_user.title_style == 'ribbon' %}selected{% endif %}>리본형</option>
+            <option value="glow"    {% if current_user.title_style == 'glow' %}selected{% endif %}>네온</option>
+        </select>
+
         <label>칭호 메인 색상</label>
-        <input type="color" name="title_color " value="{{ current_usertitle_color or '#ff6fb5' }}">
+        <input type="color" name="title_color" value="{{ current_user.title_color or '#ff6fb5' }}">
 
         <button type="submit" class="btn" style="margin-top:10px;">저장</button>
     </form>
