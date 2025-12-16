@@ -255,30 +255,27 @@ def contact_page():
     return render_template("contact.html", my_tickets=my_tickets)
 
 
-
-
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
     if request.method == "POST":
-        new_username = request.form.get("username") or current_user.username
-        new_color = request.form.get("display_color") or current_user.display_color
-        new_title = request.form.get("title") or None
+        new_username   = request.form.get("username")
+        new_color      = request.form.get("display_color")
+        new_title      = request.form.get("title_text")
         new_title_style = request.form.get("title_style")
         new_title_color = request.form.get("title_color")
 
-        current_user.username = new_username
+        current_user.username    = new_username
         current_user.display_color = new_color
-        current_user.title = new_title
+        current_user.title       = new_title
         current_user.title_style = new_title_style
         current_user.title_color = new_title_color
 
         try:
             db.session.commit()
             flash("프로필이 성공적으로 수정되었습니다!", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            print("PROFILE ERROR:", e)
             flash("수정 중 오류가 발생했습니다.", "danger")
 
         return redirect("/profile")
