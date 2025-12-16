@@ -2,45 +2,47 @@
 {% block title %}ShowkerTMS - 공지글{% endblock %}
 
 {% block content %}
-<div class="notice-page-wrapper">
-    <h1 class="page-title">공지사항</h1>
+<h1 class="page-title">공지사항</h1>
 
-    {% if has_permission(current_user, 'notice_write') %}
-        <a href="{{ url_for('notice_write') }}" class="btn">새 공지 작성</a>
-    {% endif %}
+{% if has_permission(current_user, 'notice_write') %}
+    <a href="{{ url_for('notice_write') }}" class="btn">새 공지 작성</a>
+{% endif %}
 
-    <br><br>
+<br><br>
 
-    {% for n in notices %}
-    <div class="card notice-card">
-        <h3>{{ n.title }}</h3>
+{% for n in notices %}
+<div class="card notice-card">
+    <h3>{{ n.title }}</h3>
 
-        <div style="font-size:12px;color:#666; margin-top:4px;">
-            {% if n.author %}
-                <span class="nickname-label"
-                      style="background: {{ n.author.display_color or '#444' }};">
-                    {{ n.author.username }}
+    <div style="font-size:12px;color:#666; margin-top:4px;">
+        {# 작성자 닉네임 + 칭호 #}
+        {% if n.author %}
+            <span class="nickname-label"
+                  style="background: {{ n.author.display_color or '#444' }};">
+                {{ n.author.username }}
+            </span>
+
+            {% if n.author.title %}
+                {# 칭호 색 / 스타일까지 쓸 수 있게 해둔 버전 #}
+                <span class="title-badge title-style-{{ n.author.title_style or 'basic' }}"
+                      style="background: {{ n.author.title_color or '#ff9fd9' }};">
+                    {{ n.author.title }}
                 </span>
-                {% if u.title %}
-                    <span class="title-badge {{ u.title_style or 'title-style-basic' }}"
-                          style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">
-                        {{ u.title }}
-                    </span>
-                {% endif %}
-                &nbsp;•&nbsp;
             {% endif %}
-            {{ n.created_at.strftime("%Y-%m-%d %H:%M") }}
-        </div>
+            &nbsp;•&nbsp;
+        {% endif %}
 
-        <a href="{{ url_for('notice_detail', notice_id=n.id) }}"
-           class="link-btn"
-           style="margin-top:10px;">
-            자세히 보기
-        </a>
+        {{ n.created_at.strftime("%Y-%m-%d %H:%M") }}
     </div>
-    {% else %}
-    <p>등록된 공지글이 없습니다.</p>
-    {% endfor %}
-</div>
-{% endblock %}
 
+    <a href="{{ url_for('notice_detail', notice_id=n.id) }}"
+       class="link-btn"
+       style="margin-top:10px;">
+        자세히 보기
+    </a>
+</div>
+{% else %}
+<p>등록된 공지글이 없습니다.</p>
+{% endfor %}
+
+{% endblock %}
