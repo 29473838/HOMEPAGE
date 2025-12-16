@@ -12,10 +12,11 @@
                   style="background: {{ notice.author.display_color or '#444' }};">
                 {{ notice.author.username }}
             </span>
-            {% if u.title %}
-                <span class="title-badge {{ u.title_style or 'title-style-basic' }}"
-                      style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">
-                    {{ u.title }}
+
+            {% if notice.author.title %}
+                <span class="title-badge title-style-{{ notice.author.title_style or 'basic' }}"
+                      style="--title-main-color: {{ notice.author.title_color or '#ff6fb5' }};">
+                    {{ notice.author.title }}
                 </span>
             {% endif %}
             &nbsp;•&nbsp;
@@ -47,7 +48,10 @@
             </span>
 
             {% if c.user.title %}
-                <span class="title-badge">{{ c.user.title }}</span>
+                <span class="title-badge title-style-{{ c.user.title_style or 'basic' }}"
+                      style="--title-main-color: {{ c.user.title_color or '#ff6fb5' }};">
+                    {{ c.user.title }}
+                </span>
             {% endif %}
 
             : <span>{{ c.content }}</span>
