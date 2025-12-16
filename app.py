@@ -86,6 +86,8 @@ class User(db.Model, UserMixin):
     is_banned = db.Column(db.Boolean, default=False)
     display_color = db.Column(db.String(7), default="#000000")
     title = db.Column(db.String(50), nullable=True)
+    title_style = db.Coulmn(db.String(50), default="basic")
+    title_color = db.Coulmn(db.String(20), default="#ff6fb5")
 
 
 class Notice(db.Model):
