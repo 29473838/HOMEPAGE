@@ -12,8 +12,11 @@
                   style="background: {{ notice.author.display_color or '#444' }};">
                 {{ notice.author.username }}
             </span>
-            {% if notice.author.title %}
-                <span class="title-badge">{{ notice.author.title }}</span>
+            {% if u.title %}
+                <span class="title-badge {{ u.title_style or 'title-style-basic' }}"
+                      style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">
+                    {{ u.title }}
+                </span>
             {% endif %}
             &nbsp;•&nbsp;
         {% endif %}
