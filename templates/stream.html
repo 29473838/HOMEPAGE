@@ -47,7 +47,10 @@
                 {{ current_stream.updated_by.username }}
             </span>
             {% if current_stream.updated_by.title %}
-                <span class="title-badge">{{ current_stream.updated_by.title }}</span>
+                <span class="title-badge title-style-{{ current_stream.updated_by.title_style or 'basic' }}"
+                      style="--title-main-color: {{ current_stream.updated_by.title_color or '#ff6fb5' }};">
+                    {{ current_stream.updated_by.title }}
+                </span>
             {% endif %}
             &nbsp;/ {{ current_stream.updated_at.strftime("%Y-%m-%d %H:%M") }}
         </p>
@@ -223,7 +226,7 @@
                                 </button>
                             </form>
 
-                            {# ✅ 일정 완전 삭제 #}
+                            {# 일정 완전 삭제 #}
                             <form method="post"
                                   action="{{ url_for('stream_schedule_delete', schedule_id=s.id) }}"
                                   style="margin-top:6px;"
@@ -241,7 +244,6 @@
         <p>이번 달에 등록된 방송 일정이 없습니다.</p>
     {% endif %}
 </div>
-
 
 {# ====== 관리자 전용 폼 (상태/일정 추가) ====== #}
 {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
@@ -310,5 +312,4 @@
 {% endif %}
 
 {% endblock %}
-
 
