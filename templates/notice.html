@@ -2,41 +2,42 @@
 {% block title %}ShowkerTMS - 공지글{% endblock %}
 
 {% block content %}
-<h1 class="page-title">공지사항</h1>
+<div class="notice-page-wrapper">
+    <h1 class="page-title">공지사항</h1>
 
-{% if has_permission(current_user, 'notice_write') %}
-    <a href="{{ url_for('notice_write') }}" class="btn">새 공지 작성</a>
-{% endif %}
+    {% if has_permission(current_user, 'notice_write') %}
+        <a href="{{ url_for('notice_write') }}" class="btn">새 공지 작성</a>
+    {% endif %}
 
-<br><br>
+    <br><br>
 
-{% for n in notices %}
-<div class="card">
-    <h3>{{ n.title }}</h3>
+    {% for n in notices %}
+    <div class="card">
+        <h3>{{ n.title }}</h3>
 
-    <div style="font-size:12px;color:#666; margin-top:4px;">
-        {# 작성자 닉네임 + 칭호 #}
-        {% if n.author %}
-            <span class="nickname-label"
-                  style="background: {{ n.author.display_color or '#444' }};">
-                {{ n.author.username }}
-            </span>
-            {% if n.author.title %}
-                <span class="title-badge">{{ n.author.title }}</span>
+        <div style="font-size:12px;color:#666; margin-top:4px;">
+            {# 작성자 닉네임 + 칭호 #}
+            {% if n.author %}
+                <span class="nickname-label"
+                      style="background: {{ n.author.display_color or '#444' }};">
+                    {{ n.author.username }}
+                </span>
+                {% if n.author.title %}
+                    <span class="title-badge">{{ n.author.title }}</span>
+                {% endif %}
+                &nbsp;•&nbsp;
             {% endif %}
-            &nbsp;•&nbsp;
-        {% endif %}
-        {{ n.created_at.strftime("%Y-%m-%d %H:%M") }}
+            {{ n.created_at.strftime("%Y-%m-%d %H:%M") }}
+        </div>
+
+        <a href="{{ url_for('notice_detail', notice_id=n.id) }}"
+           class="link-btn"
+           style="margin-top:10px;">
+            자세히 보기
+        </a>
     </div>
-
-    <a href="{{ url_for('notice_detail', notice_id=n.id) }}"
-       class="link-btn"
-       style="margin-top:10px;">
-        자세히 보기
-    </a>
+    {% else %}
+    <p>등록된 공지글이 없습니다.</p>
+    {% endfor %}
 </div>
-{% else %}
-<p>등록된 공지글이 없습니다.</p>
-{% endfor %}
-
 {% endblock %}
