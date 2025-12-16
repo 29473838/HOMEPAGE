@@ -361,6 +361,7 @@ textarea {
     padding: 4px 16px 4px 12px;
     border-radius: 4px 12px 12px 4px;
 }
+
 .title-style-ribbon::after {
     content: "";
     position: absolute;
