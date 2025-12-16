@@ -417,3 +417,17 @@ textarea {
     padding: 28px 40px;   
 }
 
+.nav-stream-status {
+    margin: 4px 40px 0;
+    text-align: right;
+    font-size: right;
+    font-size: 13px;
+    color: #eeeeee;
+    opacity: 0.9;
+}
+
+.nav-stream-status .live-dot {
+    color: #ff5c8d;
+    font-weight: 900;
+    margin-right: 3px;
+}
