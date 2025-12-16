@@ -22,30 +22,6 @@
     <a href="{{ url_for('qna_list') }}">Q&A</a>
     <a href="{{ url_for('stream_page') }}">방송 정보</a>
 
-    {# 방송 상태 간단 표시 #}
-    <span style="margin-left:10px; font-size:12px;">
-        {% if current_stream %}
-            {% if current_stream.status == "방송중" and current_stream.platform %}
-                {% if current_stream.url %}
-                    <a href="{{ current_stream.url }}" target="_blank"
-                       style="color:#e53935; font-weight:bold;">
-                        ● LIVE ({{ current_stream.platform }})
-                    </a>
-                {% else %}
-                    <span style="color:#e53935; font-weight:bold;">
-                        ● LIVE ({{ current_stream.platform }})
-                    </span>
-                {% endif %}
-            {% else %}
-                <span style="color:#888;">
-                    상태: {{ current_stream.status }}
-                </span>
-            {% endif %}
-        {% else %}
-            <span style="color:#888;">상태: 오프라인</span>
-        {% endif %}
-    </span>
-
     {% if current_user.is_authenticated %}
         <a href="{{ url_for('profile') }}">프로필</a>
         {% if has_permission(current_user, 'warning_manage') or has_permission(current_user, 'promote') %}
@@ -58,6 +34,28 @@
     {% endif %}
 </nav>
 
+<div style="margin:4px 40px 0; font-size:12px; text-align:right;">
+    {% if current_stream %}
+        {% if current_stream.status == "방송중" and current_stream.platform %}
+            {% if current_stream.url %}
+                <a href="{{ current_stream.url }}" target="_blank"
+                   style="color:#e53935; font-weight:bold; text-decoration:none;">
+                    ● LIVE ({{ current_stream.platform }})
+                </a>
+            {% else %}
+                <span style="color:#e53935; font-weight:bold;">
+                    ● LIVE ({{ current_stream.platform }})
+                </span>
+            {% endif %}
+        {% else %}
+            <span style="color:#eeeeee;">
+                상태: {{ current_stream.status }}
+            </span>
+        {% endif %}
+    {% else %}
+        <span style="color:#eeeeee;">상태: 오프라인</span>
+    {% endif %}
+</div>
 
 <main>
     <div class="page-container">
