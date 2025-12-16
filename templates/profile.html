@@ -11,7 +11,8 @@
             {{ current_user.username }}
         </span>
         {% if current_user.title %}
-            <span class="title-badge {{ current_user.title_style or 'title-style-basic' }}"
+            {# title_style: basic / pill / outline / ribbon / glow #}
+            <span class="title-badge title-style-{{ current_user.title_style or 'basic' }}"
                   style="--title-main-color: {{ current_user.title_color or '#ff6fb5' }};">
                 {{ current_user.title }}
             </span>
@@ -42,12 +43,13 @@
         <input type="text" name="title_text" value="{{ current_user.title or '' }}" placeholder="예: STREAMER, MANAGER">
 
         <label>칭호 스타일</label>
+        {% set cur_style = current_user.title_style or 'basic' %}
         <select name="title_style">
-            <option value="basic"   {% if current_user.title_style == 'basic' %}selected{% endif %}>기본 뱃지</option>
-            <option value="pill"    {% if current_user.title_style == 'pill' %}selected{% endif %}>둥근 알약형</option>
-            <option value="outline" {% if current_user.title_style == 'outline' %}selected{% endif %}>테두리만 있는 뱃지</option>
-            <option value="ribbon"  {% if current_user.title_style == 'ribbon' %}selected{% endif %}>리본형</option>
-            <option value="glow"    {% if current_user.title_style == 'glow' %}selected{% endif %}>네온</option>
+            <option value="basic"   {% if cur_style == 'basic' %}selected{% endif %}>기본 뱃지</option>
+            <option value="pill"    {% if cur_style == 'pill' %}selected{% endif %}>둥근 알약형</option>
+            <option value="outline" {% if cur_style == 'outline' %}selected{% endif %}>테두리만 있는 뱃지</option>
+            <option value="ribbon"  {% if cur_style == 'ribbon' %}selected{% endif %}>리본형</option>
+            <option value="glow"    {% if cur_style == 'glow' %}selected{% endif %}>네온</option>
         </select>
 
         <label>칭호 메인 색상</label>
