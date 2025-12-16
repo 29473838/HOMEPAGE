@@ -312,7 +312,7 @@ textarea {
     color: #fff;
 }
 
-/* 공통칭호 */
+/* ===== 공통 칭호 뱃지 ===== */
 .title-badge {
     display: inline-block;
     padding: 3px 10px;
@@ -321,42 +321,45 @@ textarea {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-left: 6px;
+    vertical-align: middle;
 
-    /* 색상변수제어 */
+    /* 기본색 */
     --title-main-color: #ff6fb5;
+    --title-text-color: #ffffff;
+
+    color: var(--title-text-color);
 }
 
-	/* 기본형 */
+/* === 기본형  === */
 .title-style-basic {
-    color: #fff;
-    background: linear-gradient(135deg,
-                                var(--title-main-color),
-                                #ffb4e0);
+    background: linear-gradient(
+        135deg,
+        var(--title-main-color),
+        color-mix(in srgb, var(--title-main-color) 60%, #ffffff 40%)
+    );
     border-radius: 999px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
-	/* 알약형 */
+/* === 알약형 === */
 .title-style-pill {
-    color: #fff;
     background: var(--title-main-color);
     border-radius: 999px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     padding: 4px 14px;
 }
 
-	/* 외곽선형 */
+/* === 외곽선형 === */
 .title-style-outline {
+    background: transparent;
     color: var(--title-main-color);
-    background: rgba(255,255,255,0.2);
     border-radius: 999px;
     border: 2px solid var(--title-main-color);
 }
 
-	/* 리본형 */
+/* === 리본형 === */
 .title-style-ribbon {
     position: relative;
-    color: #fff;
     background: var(--title-main-color);
     padding: 4px 16px 4px 12px;
     border-radius: 4px 12px 12px 4px;
@@ -373,14 +376,13 @@ textarea {
     border-radius: 2px;
 }
 
-	/* 네온형 */
+/* === 네온형 === */
 .title-style-glow {
-    color: #fff;
     background: var(--title-main-color);
     border-radius: 999px;
     box-shadow:
         0 0 8px var(--title-main-color),
-        0 0 16px rgba(255,255,255,0.7);
+        0 0 16px rgba(255, 255, 255, 0.7);
 }
 
 /* 비즈니스 페이지 전용 레이아웃 */
