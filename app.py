@@ -84,7 +84,7 @@ class User(db.Model, UserMixin):
     warnings = db.Column(db.Integer, default=0)
     banned_until = db.Column(db.DateTime, nullable=True)
     is_banned = db.Column(db.Boolean, default=False)
-    display_color = db.Column(db.String(7), default="#000000")
+    display_color = db.Column(db.String(20), default="#ff6fb5")
     title = db.Column(db.String(50), nullable=True)
     title_color = db.Column(db.String(20), default="#ff6fb5")
     title_style = db.Column(db.String(50), default="basic")
