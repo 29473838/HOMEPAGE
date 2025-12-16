@@ -8,7 +8,7 @@
 <div class="card">
     <h3>현재 상태</h3>
 
-    {% if current_stream && current_stream.status == "방송중" %}
+    {% if current_stream and current_stream.status == "방송중" %}
         <p style="margin-bottom:8px;">
             <strong>상태:</strong>
             <span style="color:#e53935; font-weight:bold;">● 방송중</span>
@@ -297,8 +297,3 @@
 {% endif %}
 
 {% endblock %}
-
-
-{% endblock %}
-
-
