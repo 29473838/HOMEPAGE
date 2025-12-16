@@ -341,3 +341,13 @@ textarea {
     width: 100%;
     max-width: 800px;
 }
+
+
+.notice-page-wrapper {
+    min-height: calc(100vh - 80px); 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;   
+    align-items: center;
+    padding: 60px 0 120px;
+}
