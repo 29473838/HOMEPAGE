@@ -327,17 +327,17 @@ textarea {
     letter-spacing: 0.06em;
 }
 
-/* 비즈니스 */
+/* 비즈니스 페이지 전용 레이아웃 */
 .business-page-wrapper {
-    min-height: calc(100vh - 140px); 
+    min-height: calc(100vh - 80px);  
     display: flex;
     flex-direction: column;
-    justify-content: center;  
-    align-items: center;      
-    padding: 20px 0 40px;
+    justify-content: center;         
+    align-items: center;         
+    padding: 60px 0 100px;       
 }
 
 .business-card {
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
 }
