@@ -903,3 +903,20 @@ def stream_schedule_update(schedule_id):
     flash("방송 일정이 수정되었습니다.", "success")
     return redirect(url_for("stream_page"))
 
+@app.route("/stream/schedule/<int:schedule_id>/delete", methods=["POST"])
+@login_required
+def stream_schedule_delete(schedule_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("방송 일정을 삭제할 권한이 없습니다.", "danger")
+        return redirect(url_for("stream_page"))
+
+    schedule = StreamSchedule.query.get_or_404(schedule_id)
+
+    target_year = schedule.start_at.year
+    target_month = schedule.start_at.month
+
+    db.session.delete(schedule)
+    db.session.commit()
+
+    flash("방송 일정이 완전히 삭제되었습니다.", "success")
+    return redirect(url_for("stream_page", year=target_year, month=target_month))
