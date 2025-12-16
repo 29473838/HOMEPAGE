@@ -11,10 +11,11 @@
               style="background: {{ current_user.display_color or '#444444' }};">
             {{ current_user.username }}
         </span>
-
-        {# 칭호(타이틀) 있으면 배지처럼 표시 #}
         {% if current_user.title %}
-            <span class="title-badge">{{ current_user.title }}</span>
+            <span class="title-badge {{ current_user.title_style or 'title-style-basic' }}"
+                style="--title-main-color: {{ current_user.title_color or '#ff6fb5' }};">
+                {{ current_user.title }}
+            </span>
         {% endif %}
 
         <span style="font-size:12px;color:#666;">
@@ -49,14 +50,27 @@
         <input type="text" name="username" value="{{ current_user.username }}">
 
         <label>닉네임 색상</label>
-        <input type="color" name="display_color" value="{{ current_user.display_color or '#444444' }}">
+        <input type="color" name="display_color" value="{{ current_user.display_color or '#ff6fb5' }}">
 
-        <label>칭호 (프로필/공지/댓글 등에 표시될 타이틀)</label>
+        <hr style="margin:15px 0;">
+
+        <label>칭호 텍스트</label>
         <input type="text" name="title"
                value="{{ current_user.title or '' }}"
-               placeholder="예: 운영자, STAFF, Time Traveler 등">
+               placeholder="예: Streamer, STAFF, Time Traveler 등">
 
-        <button type="submit" class="btn">저장</button>
+        <label>칭호 스타일</label>
+        <select name="title_style">
+            <option value="basic" {% if current_user.title_style == 'basic' %}selected{% endif %}>기본 뱃지</option>
+            <option value="pill" {% if current_user.title_style == 'pill' %}selected{% endif %}>둥근 알약형</option>
+            <option value="outline" {% if current_user.title_style == 'outline' %}selected{% endif %}>테두리만 있는 뱃지</option>
+            <option value="ribbon" {% if current_user.title_style == 'ribbon' %}selected{% endif %}>리본형</option>
+            <option value="glow" {% if current_user.title_style == 'glow' %}selected{% endif %}>네온</option>
+            
+        <label>칭호 메인 색상</label>
+        <input type="color" name="title_color " value="{{ current_usertitle_color or '#ff6fb5' }}">
+
+        <button type="submit" class="btn" style="margin-top:10px;">저장</button>
     </form>
 </div>
 {% endblock %}
