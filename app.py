@@ -264,10 +264,14 @@ def profile():
         new_username = request.form.get("username") or current_user.username
         new_color = request.form.get("display_color") or current_user.display_color
         new_title = request.form.get("title") or None
+        new_title_style = request.form.get("title_style")
+        new_title_color = request.form.get("title_color")
 
         current_user.username = new_username
         current_user.display_color = new_color
         current_user.title = new_title
+        current_user.title_style = new_title_style
+        current_user.title_color = new_title_color
 
         try:
             db.session.commit()
