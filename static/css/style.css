@@ -371,6 +371,7 @@ textarea {
     height: 70%;
     background: var(--title-main-color);
     border-radius: 2px;
+}
 
     /*네온형*/
 .title-style-glow {
