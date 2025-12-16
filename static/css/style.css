@@ -312,21 +312,21 @@ textarea {
     color: #fff;
 }
 
-/* 칭호 배지 */
+/* 공통칭호 */
 .title-badge {
     display: inline-block;
-    margin-left: 6px;
     padding: 3px 10px;
     font-size: 11px;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 6px;
 
-/* 색상변수제어 */
+    /* 색상변수제어 */
     --title-main-color: #ff6fb5;
 }
 
-    /* 기본형 */
+	/* 기본형 */
 .title-style-basic {
     color: #fff;
     background: linear-gradient(135deg,
@@ -336,16 +336,16 @@ textarea {
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
 }
 
-    /* 알약형 */    
+	/* 알약형 */
 .title-style-pill {
-    color:#fff;
+    color: #fff;
     background: var(--title-main-color);
     border-radius: 999px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     padding: 4px 14px;
 }
 
-    /*외각선형*/
+	/* 외곽선형 */
 .title-style-outline {
     color: var(--title-main-color);
     background: rgba(255,255,255,0.2);
@@ -353,7 +353,7 @@ textarea {
     border: 2px solid var(--title-main-color);
 }
 
-    /*리본형*/
+	/* 리본형 */
 .title-style-ribbon {
     position: relative;
     color: #fff;
@@ -361,7 +361,6 @@ textarea {
     padding: 4px 16px 4px 12px;
     border-radius: 4px 12px 12px 4px;
 }
-
 .title-style-ribbon::after {
     content: "";
     position: absolute;
@@ -374,7 +373,7 @@ textarea {
     border-radius: 2px;
 }
 
-    /*네온형*/
+	/* 네온형 */
 .title-style-glow {
     color: #fff;
     background: var(--title-main-color);
