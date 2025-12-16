@@ -176,7 +176,9 @@
 
                     {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
                         <details style="font-size:12px; min-width:230px;">
-                            <summary style="cursor:pointer;">수정 / 취소하기</summary>
+                            <summary style="cursor:pointer;">수정 / 취소 / 삭제</summary>
+
+                            {# 일정 수정 / 취소 #}
                             <form method="post"
                                   action="{{ url_for('stream_schedule_update', schedule_id=s.id) }}"
                                   style="margin-top:4px; text-align:left;">
@@ -220,6 +222,16 @@
                                     변경 저장
                                 </button>
                             </form>
+
+                            {# ✅ 일정 완전 삭제 #}
+                            <form method="post"
+                                  action="{{ url_for('stream_schedule_delete', schedule_id=s.id) }}"
+                                  style="margin-top:6px;"
+                                  onsubmit="return confirm('이 방송 일정을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
+                                <button type="submit" class="btn-small danger">
+                                    일정 완전 삭제
+                                </button>
+                            </form>
                         </details>
                     {% endif %}
                 </div>
@@ -229,6 +241,7 @@
         <p>이번 달에 등록된 방송 일정이 없습니다.</p>
     {% endif %}
 </div>
+
 
 {# ====== 관리자 전용 폼 (상태/일정 추가) ====== #}
 {% if current_user.is_authenticated and current_user.role in ["대표","부대표","매니저"] %}
@@ -297,3 +310,4 @@
 {% endif %}
 
 {% endblock %}
+
