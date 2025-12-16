@@ -85,7 +85,8 @@
                     {{ p.answer_admin.username }}
                 </span>
                 {% if p.answer_admin.title %}
-                    <span class="title-badge">{{ p.answer_admin.title }}</span>
+                    <span class="title-badge {{ u.title_style or 'title-style-basic' }}"
+                        style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">{{ p.answer_admin.title }}</span>
                 {% endif %}
             {% endif %}
             <br>
