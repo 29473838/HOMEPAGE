@@ -23,9 +23,9 @@
             </span>
 
             {% if n.author.title %}
-                {# 칭호 색 / 스타일까지 쓸 수 있게 해둔 버전 #}
+                {# 칭호: 색상/스타일 모두 프로필 설정과 동일 규칙 사용 #}
                 <span class="title-badge title-style-{{ n.author.title_style or 'basic' }}"
-                      style="background: {{ n.author.title_color or '#ff9fd9' }};">
+                      style="--title-main-color: {{ n.author.title_color or '#ff6fb5' }};">
                     {{ n.author.title }}
                 </span>
             {% endif %}
