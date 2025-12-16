@@ -53,7 +53,10 @@
                 {{ p.author.username }}
             </span>
             {% if p.author.title %}
-                <span class="title-badge">{{ p.author.title }}</span>
+                <span class="title-badge title-style-{{ p.author.title_style or 'basic' }}"
+                      style="--title-main-color: {{ p.author.title_color or '#ff6fb5' }};">
+                    {{ p.author.title }}
+                </span>
             {% endif %}
             &nbsp;•&nbsp;
         {% endif %}
@@ -85,8 +88,10 @@
                     {{ p.answer_admin.username }}
                 </span>
                 {% if p.answer_admin.title %}
-                    <span class="title-badge {{ u.title_style or 'title-style-basic' }}"
-                        style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">{{ p.answer_admin.title }}</span>
+                    <span class="title-badge title-style-{{ p.answer_admin.title_style or 'basic' }}"
+                          style="--title-main-color: {{ p.answer_admin.title_color or '#ff6fb5' }};">
+                        {{ p.answer_admin.title }}
+                    </span>
                 {% endif %}
             {% endif %}
             <br>
@@ -136,7 +141,10 @@
                 {{ p.author.username }}
             </span>
             {% if p.author.title %}
-                <span class="title-badge">{{ p.author.title }}</span>
+                <span class="title-badge title-style-{{ p.author.title_style or 'basic' }}"
+                      style="--title-main-color: {{ p.author.title_color or '#ff6fb5' }};">
+                    {{ p.author.title }}
+                </span>
             {% endif %}
             &nbsp;•&nbsp;
         {% endif %}
@@ -160,7 +168,21 @@
     {# 관리자 답변 내용 #}
     {% if p.answer %}
         <div style="margin-top:10px;padding:8px 10px;background:#f3f3f3;border-radius:6px;font-size:14px;">
-            <strong>관리자 답변</strong><br>
+            <strong>관리자 답변</strong>
+            {% if p.answer_admin %}
+                &nbsp;-&nbsp;
+                <span class="nickname-label"
+                      style="background: {{ p.answer_admin.display_color or '#444' }};">
+                    {{ p.answer_admin.username }}
+                </span>
+                {% if p.answer_admin.title %}
+                    <span class="title-badge title-style-{{ p.answer_admin.title_style or 'basic' }}"
+                          style="--title-main-color: {{ p.answer_admin.title_color or '#ff6fb5' }};">
+                        {{ p.answer_admin.title }}
+                    </span>
+                {% endif %}
+            {% endif %}
+            <br>
             <span style="white-space:pre-line;">{{ p.answer }}</span>
         </div>
     {% endif %}
@@ -181,3 +203,4 @@
 {% endfor %}
 
 {% endblock %}
+
