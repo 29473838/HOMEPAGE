@@ -194,6 +194,8 @@
                                     <option value="치지직" {% if s.platform == "치지직" %}selected{% endif %}>치지직</option>
                                     <option value="숲" {% if s.platform == "숲" %}selected{% endif %}>숲</option>
                                     <option value="유튜브" {% if s.platform == "유튜브" %}selected{% endif %}>유튜브</option>
+                                    <option value="일상" {% if s.platform == "일상" %}selected{% endif %}>일상</option>
+                                    <option value="기타" {% if s.platform == "기타" %}selected{% endif %}>기타</option>
                                 </select>
 
                                 <label style="display:block; margin-top:4px;">시작 일시</label>
@@ -268,6 +270,8 @@
             <option value="치지직" {% if cur_plat == "치지직" %}selected{% endif %}>치지직</option>
             <option value="숲"   {% if cur_plat == "숲" %}selected{% endif %}>숲</option>
             <option value="유튜브" {% if cur_plat == "유튜브" %}selected{% endif %}>유튜브</option>
+            <option value="일상" {% if cur_plat == "일상" %}selected{% endif %}>일상</option>
+            <option value="기타" {% if cur_plat == "기타" %}selected{% endif %}>기타</option>
         </select>
 
         <label>방송 URL (방송중일 때 이동할 링크)</label>
@@ -314,5 +318,6 @@
 {% endif %}
 
 {% endblock %}
+
 
 
