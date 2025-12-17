@@ -2,16 +2,18 @@
 {% block title %}회원가입{% endblock %}
 
 {% block content %}
-<h1 class="page-title">회원가입</h1>
-<div class="card">
-<form method="post">
-    <label>이메일</label>
-    <input type="email" name="email" required>
-    <label>닉네임</label>
-    <input type="text" name="username" required>
-    <label>비밀번호</label>
-    <input type="password" name="password" required>
-    <button type="submit" class="btn">가입하기</button>
-</form>
+<div class="notice-page-wrapper">
+    <h1 class="page-title">회원가입</h1>
+    <div class="card">
+    <form method="post">
+        <label>이메일</label>
+        <input type="email" name="email" required>
+        <label>닉네임</label>
+        <input type="text" name="username" required>
+        <label>비밀번호</label>
+        <input type="password" name="password" required>
+        <button type="submit" class="btn">가입하기</button>
+    </form>
+    </div>
 </div>
 {% endblock %}
