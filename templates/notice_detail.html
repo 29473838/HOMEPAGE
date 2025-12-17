@@ -3,7 +3,18 @@
 
 {% block content %}
 <div class="notice-page-wrapper">
-    <h1 class="page-title">{{ notice.title }}</h1>
+    <h1 class="page-title">
+        {% if notice.category %}
+            <span class="notice-tag
+                {% if notice.category == '방송공지' %} notice-tag-stream
+                {% elif notice.category == '패치노트' %} notice-tag-patch
+                {% else %} notice-tag-general
+                {% endif %}">
+                {{ notice.category }}
+            </span>
+        {% endif %}
+        {{ notice.title }}
+    </h1>
     
     <div class="card">
         <div style="font-size:12px;color:#666; margin-bottom:6px;">
