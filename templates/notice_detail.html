@@ -2,78 +2,80 @@
 {% block title %}공지 - {{ notice.title }}{% endblock %}
 
 {% block content %}
-<h1 class="page-title">{{ notice.title }}</h1>
-
-<div class="card">
-    <div style="font-size:12px;color:#666; margin-bottom:6px;">
-        {# 공지 작성자 닉네임 + 칭호 #}
-        {% if notice.author %}
-            <span class="nickname-label"
-                  style="background: {{ notice.author.display_color or '#444' }};">
-                {{ notice.author.username }}
-            </span>
-
-            {% if notice.author.title %}
-                <span class="title-badge title-style-{{ notice.author.title_style or 'basic' }}"
-                      style="--title-main-color: {{ notice.author.title_color or '#ff6fb5' }};">
-                    {{ notice.author.title }}
+<div class="notice-page-wrapper">
+    <h1 class="page-title">{{ notice.title }}</h1>
+    
+    <div class="card">
+        <div style="font-size:12px;color:#666; margin-bottom:6px;">
+            {# 공지 작성자 닉네임 + 칭호 #}
+            {% if notice.author %}
+                <span class="nickname-label"
+                      style="background: {{ notice.author.display_color or '#444' }};">
+                    {{ notice.author.username }}
                 </span>
+    
+                {% if notice.author.title %}
+                    <span class="title-badge title-style-{{ notice.author.title_style or 'basic' }}"
+                          style="--title-main-color: {{ notice.author.title_color or '#ff6fb5' }};">
+                        {{ notice.author.title }}
+                    </span>
+                {% endif %}
+                &nbsp;•&nbsp;
             {% endif %}
-            &nbsp;•&nbsp;
-        {% endif %}
-        {{ notice.created_at.strftime("%Y-%m-%d %H:%M") }}
-    </div>
-
-    <div style="margin-top:10px;">
-        {{ notice.content|safe }}
-    </div>
-</div>
-
-{% if has_permission(current_user, 'notice_write') %}
-<form method="post"
-      action="{{ url_for('notice_delete', notice_id=notice.id) }}"
-      onsubmit="return confirm('삭제하시겠습니까?');">
-    <a href="{{ url_for('notice_edit', notice_id=notice.id) }}" class="btn">수정</a>
-    <button type="submit" class="btn" style="background:#e74c3c;">삭제</button>
-</form>
-{% endif %}
-
-<h2 class="page-title" style="font-size:22px;margin-top:30px;">댓글</h2>
-<div class="card">
-    {% for c in comments %}
-        <div style="margin-bottom:10px;">
-            <span class="nickname-label"
-                  style="background: {{ c.user.display_color or '#444' }};">
-                {{ c.user.username }}
-            </span>
-
-            {% if c.user.title %}
-                <span class="title-badge title-style-{{ c.user.title_style or 'basic' }}"
-                      style="--title-main-color: {{ c.user.title_color or '#ff6fb5' }};">
-                    {{ c.user.title }}
-                </span>
-            {% endif %}
-
-            : <span>{{ c.content }}</span>
-            <span style="font-size:11px;color:#888;">
-                ({{ c.created_at.strftime("%Y-%m-%d %H:%M") }})
-            </span>
+            {{ notice.created_at.strftime("%Y-%m-%d %H:%M") }}
         </div>
-    {% else %}
-        <p>댓글이 없습니다.</p>
-    {% endfor %}
-
-    {% if current_user.is_authenticated %}
+    
+        <div style="margin-top:10px;">
+            {{ notice.content|safe }}
+        </div>
+    </div>
+    
+    {% if has_permission(current_user, 'notice_write') %}
     <form method="post"
-          action="{{ url_for('notice_comment', notice_id=notice.id) }}"
-          style="margin-top:15px;">
-        <textarea name="comment" placeholder="댓글을 입력하세요"></textarea>
-        <button type="submit" class="btn">댓글 등록</button>
+          action="{{ url_for('notice_delete', notice_id=notice.id) }}"
+          onsubmit="return confirm('삭제하시겠습니까?');">
+        <a href="{{ url_for('notice_edit', notice_id=notice.id) }}" class="btn">수정</a>
+        <button type="submit" class="btn" style="background:#e74c3c;">삭제</button>
     </form>
-    {% else %}
-        <p style="font-size:13px;color:#555;">
-            댓글 작성은 <a href="{{ url_for('login') }}">로그인</a> 후 가능합니다.
-        </p>
     {% endif %}
+    
+    <h2 class="page-title" style="font-size:22px;margin-top:30px;">댓글</h2>
+    <div class="card">
+        {% for c in comments %}
+            <div style="margin-bottom:10px;">
+                <span class="nickname-label"
+                      style="background: {{ c.user.display_color or '#444' }};">
+                    {{ c.user.username }}
+                </span>
+    
+                {% if c.user.title %}
+                    <span class="title-badge title-style-{{ c.user.title_style or 'basic' }}"
+                          style="--title-main-color: {{ c.user.title_color or '#ff6fb5' }};">
+                        {{ c.user.title }}
+                    </span>
+                {% endif %}
+    
+                : <span>{{ c.content }}</span>
+                <span style="font-size:11px;color:#888;">
+                    ({{ c.created_at.strftime("%Y-%m-%d %H:%M") }})
+                </span>
+            </div>
+        {% else %}
+            <p>댓글이 없습니다.</p>
+        {% endfor %}
+    
+        {% if current_user.is_authenticated %}
+        <form method="post"
+              action="{{ url_for('notice_comment', notice_id=notice.id) }}"
+              style="margin-top:15px;">
+            <textarea name="comment" placeholder="댓글을 입력하세요"></textarea>
+            <button type="submit" class="btn">댓글 등록</button>
+        </form>
+        {% else %}
+            <p style="font-size:13px;color:#555;">
+                댓글 작성은 <a href="{{ url_for('login') }}">로그인</a> 후 가능합니다.
+            </p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
