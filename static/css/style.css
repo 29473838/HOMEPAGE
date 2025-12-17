@@ -444,3 +444,22 @@ textarea {
     max-width: 1100px;     
     padding: 28px 40px;   
 }
+
+.stream-status-bar {
+    max-width: 1100px;
+    margin: 60px auto 0;  
+    text-align: center;
+    font-size: 12px;
+    z-index: 900;
+}
+
+.stream-status-live {
+    color: #ffebee;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(0,0,0,0.3);
+    text-decoration: none;
+}
+
+.stream-status-text {
+    color: #f5f5f5;
+}
