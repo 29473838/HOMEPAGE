@@ -35,28 +35,33 @@
 </nav>
 
 {# ▶ 네비게이션 바로 아래 방송 상태 줄 #}
-<div class="stream-status-bar">
+<div class="stream-status-bar"
+     style="margin:4px auto 0; max-width:1200px; text-align:center; font-size:12px;">
     {% if current_stream %}
         {% if current_stream.status == "방송중" and current_stream.platform %}
             {% if current_stream.url %}
-                <a href="{{ current_stream.url }}" target="_blank" class="stream-status-live">
+                <a href="{{ current_stream.url }}" target="_blank"
+                   class="stream-status-live"
+                   style="color:#e53935; font-weight:bold; text-decoration:none;">
                     ● LIVE ({{ current_stream.platform }})
                 </a>
             {% else %}
-                <span class="stream-status-live">
+                <span class="stream-status-live"
+                      style="color:#e53935; font-weight:bold;">
                     ● LIVE ({{ current_stream.platform }})
                 </span>
             {% endif %}
         {% else %}
-            <span class="stream-status-text">
+            <span class="stream-status-text" style="color:#eeeeee;">
                 상태: {{ current_stream.status }}
             </span>
         {% endif %}
     {% else %}
-        <span class="stream-status-text">상태: 오프라인</span>
+        <span class="stream-status-text" style="color:#eeeeee;">
+            상태: 오프라인
+        </span>
     {% endif %}
 </div>
-
 
 <main>
     <div class="page-container">
