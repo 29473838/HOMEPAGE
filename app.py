@@ -948,12 +948,26 @@ def stream_schedule_delete(schedule_id):
     return redirect(url_for("stream_page", year=target_year, month=target_month))
 
 
+# ==============================================
 # 개인정보처리방침
+# ==============================================
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
 
-# 오픈소스 라이선스 안내
+# ==============================================
+# 오픈소스라이선스
+# ==============================================
 @app.route("/licenses")
 def oss_licenses():
     return render_template("oss_licenses.html")
+
+
+# ==============================================
+# 연도작성
+# ==============================================
+from datetime import datetime
+
+@app.context_processor
+def inject_current_year():
+    return {'current_year': datetime.utcnow().year}
