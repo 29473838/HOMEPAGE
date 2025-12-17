@@ -4,11 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ShowkerTMS{% endblock %}</title>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic:wght@400;700&display=swap">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {# ▼ Toast UI Editor Core CSS #}
+    <link rel="stylesheet"
+          href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+
+    {# ▼ Color Picker + Color Syntax Plugin CSS #}
+    <link rel="stylesheet"
+          href="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.css">
+    <link rel="stylesheet"
+          href="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.css">
+
+    {# ▼ Toast UI / 플러그인 JS #}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.0/purify.min.js"></script>
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+    <script src="https://uicdn.toast.com/tui-color-picker/latest/tui-color-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
 </head>
+
 <body>
 <audio id="bgMusic" autoplay loop>
     <source src="{{ url_for('static', filename='assets/mainmusic.mp3') }}" type="audio/mpeg">
