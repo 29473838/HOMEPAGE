@@ -418,11 +418,10 @@ textarea {
 }
 
 .nav-stream-status {
-    margin: 4px 40px 0;
-    text-align: right;
-    font-size: right;
+    margin: 4px 40px 0;    
+    text-align: right;     
     font-size: 13px;
-    color: #eeeeee;
+    color: #eeeeee;        
     opacity: 0.9;
 }
 
@@ -431,3 +430,4 @@ textarea {
     font-weight: 900;
     margin-right: 3px;
 }
+
