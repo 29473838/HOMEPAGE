@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block title %}공지 수정 - 소리가 담긴 타임머신{% endblock %}
 {% block content %}
-
-
-<div class="page-title">공지 수정</div>
-
-<form method="POST" class="content-form">
-    <input type="text" name="title" value="{{ notice.title }}" required>
-    <textarea name="content" required>{{ notice.content }}</textarea>
-    <button type="submit" class="btn-primary">저장</button>
-</form>
-
+<div class="notice-page-wrapper">
+    <div class="page-title">공지 수정</div>
+    
+    <form method="POST" class="content-form">
+        <input type="text" name="title" value="{{ notice.title }}" required>
+        <textarea name="content" required>{{ notice.content }}</textarea>
+        <button type="submit" class="btn-primary">저장</button>
+    </form>
+</div>
 {% endblock %}
