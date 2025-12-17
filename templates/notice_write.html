@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block title %}공지 작성 - 소리가 담긴 타임머신{% endblock %}
+
 {% block content %}
 <div class="notice-page-wrapper">
     <h1 class="page-title">새 공지 작성</h1>
 
-    <div class="card" style="width:80%;max-width:1100px;">
-        <form method="POST" enctype="multipart/form-data">
-            <label>공지 유형</label>
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" id="notice-write-form">
+            <label>공지 분류</label>
             <select name="category" required>
                 <option value="일반공지">일반공지</option>
                 <option value="방송공지">방송공지</option>
@@ -17,48 +18,39 @@
             <input type="text" name="title" placeholder="제목" required>
 
             <label>내용</label>
-            {# ✅ 여기 textarea 에 에디터 적용됨 #}
-            <textarea name="content"
-                      class="notice-editor"
-                      placeholder="공지 내용을 적어주세요 (텍스트 / 링크 등)"
-                      required></textarea>
+            {# Toast UI Editor 가 올라갈 영역 #}
+            <div id="notice-editor"></div>
 
-            <label>이미지 첨부 (선택)</label>
+            {# 이 hidden textarea 에 최종 HTML 내용이 들어가서 서버로 전송됨 #}
+            <textarea id="notice-content" name="content" style="display:none;"></textarea>
+
+            <label style="margin-top:10px;">이미지 첨부 (선택)</label>
             <input type="file" name="image" accept="image/*">
 
-            <button type="submit" class="btn" style="margin-top:10px;">등록</button>
+            <button type="submit" class="btn" style="margin-top:12px;">등록</button>
         </form>
     </div>
 </div>
 
-{# ✅ TinyMCE 에디터 스크립트 (CDN) #}
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js"
-        referrerpolicy="origin"></script>
+{# Toast UI Editor CDN #}
+<link rel="stylesheet"
+      href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+
 <script>
-  tinymce.init({
-    selector: 'textarea.notice-editor',
+    const hiddenInput = document.getElementById('notice-content');
 
-    plugins: 'lists link table code',
-    menubar: false,
-    statusbar: false,
+    const editor = new toastui.Editor({
+        el: document.querySelector('#notice-editor'),
+        height: '500px',
+        initialEditType: 'wysiwyg',  
+        previewStyle: 'vertical',
+        initialValue: hiddenInput.value || '',
+    });
 
-    toolbar: [
-      'undo redo | blocks fontfamily fontsize',
-      '| bold italic underline strikethrough forecolor backcolor',
-      '| alignleft aligncenter alignright alignjustify',
-      '| bullist numlist | removeformat | code'
-    ].join(' '),
-
-    fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px',
-
-    font_family_formats: [
-      '기본폰트=system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
-      'Noto Sans KR="Noto Sans KR",sans-serif',
-      'Nanum Gothic="Nanum Gothic",sans-serif'
-    ].join(';'),
-
-    content_style: 'body { font-family: "Noto Sans KR", system-ui, sans-serif; }'
-  });
+    document.getElementById('notice-write-form').addEventListener('submit', function (e) {
+        hiddenInput.value = editor.getHTML();
+    });
 </script>
 {% endblock %}
 
