@@ -967,5 +967,27 @@ def oss_licenses():
 # 연도작성
 # ==============================================
 @app.context_processor
-def inject_current_year():
-    return {'current_year': datetime.utcnow().year}
+def inject_globals():
+    return {
+        "has_permission": has_permission,     
+        "current_year": datetime.utcnow().year 
+    }
+
+# ==============================================
+# 연도작성
+# ==============================================
+def has_permission(user, perm: str) -> bool:
+    """역할(role)에 따라 권한 문자열을 체크"""
+    if not user.is_authenticated:
+        return False
+
+    role_perm = {
+        "대표":   {"notice_write", "warning_manage", "promote"},
+        "부대표": {"notice_write", "warning_manage", "promote"},
+        "매니저": {"notice_write", "warning_manage"},
+    }
+    return perm in role_perm.get(user.role, set())
+
+
+
+
