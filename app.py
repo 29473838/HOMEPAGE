@@ -946,3 +946,14 @@ def stream_schedule_delete(schedule_id):
 
     flash("방송 일정이 완전히 삭제되었습니다.", "success")
     return redirect(url_for("stream_page", year=target_year, month=target_month))
+
+
+# 개인정보처리방침
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+# 오픈소스 라이선스 안내
+@app.route("/licenses")
+def oss_licenses():
+    return render_template("oss_licenses.html")
