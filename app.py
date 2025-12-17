@@ -536,19 +536,28 @@ def notice_delete(notice_id):
 def notice_edit(notice_id):
     notice = Notice.query.get_or_404(notice_id)
 
-    # 작성자 또는 관리자만 편집 가능
     if notice.author_id != current_user.id and current_user.role not in ["대표", "부대표", "매니저"]:
         abort(403)
 
     if request.method == "POST":
-        notice.title = request.form["title"]
-        notice.content = request.form["content"]
-        db.session.commit()
+        title = request.form.get("title", "").strip()
+        content = request.form.get("content", "").strip()
+        category = request.form.get("category") or "일반공지"
+        
+        if category not in ["일반공지", "방송공지", "패치노트"]:
+            category = "일반공지"
 
+        notice.title = title
+        notice.content = content
+        notice.category = category
+
+        db.session.commit()
         flash("공지사항이 수정되었습니다.")
+
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_edit.html", notice=notice)
+
 
 @app.route("/notice/<int:notice_id>/comment", methods=["POST"])
 @login_required
