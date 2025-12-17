@@ -34,26 +34,26 @@
     {% endif %}
 </nav>
 
-<div style="margin:4px 40px 0; font-size:12px; text-align:right;">
+{# ▶ 네비게이션 바로 아래 방송 상태 줄 #}
+<div class="stream-status-bar">
     {% if current_stream %}
         {% if current_stream.status == "방송중" and current_stream.platform %}
             {% if current_stream.url %}
-                <a href="{{ current_stream.url }}" target="_blank"
-                   style="color:#e53935; font-weight:bold; text-decoration:none;">
+                <a href="{{ current_stream.url }}" target="_blank" class="stream-status-live">
                     ● LIVE ({{ current_stream.platform }})
                 </a>
             {% else %}
-                <span style="color:#e53935; font-weight:bold;">
+                <span class="stream-status-live">
                     ● LIVE ({{ current_stream.platform }})
                 </span>
             {% endif %}
         {% else %}
-            <span style="color:#eeeeee;">
+            <span class="stream-status-text">
                 상태: {{ current_stream.status }}
             </span>
         {% endif %}
     {% else %}
-        <span style="color:#eeeeee;">상태: 오프라인</span>
+        <span class="stream-status-text">상태: 오프라인</span>
     {% endif %}
 </div>
 
