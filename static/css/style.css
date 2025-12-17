@@ -279,10 +279,11 @@ textarea {
 /* nickname 색 */
 .nickname-label {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 2px 8px;
     border-radius: 999px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
+    color: #fff;
 }
 
 /* 벚꽃 */
@@ -328,16 +329,6 @@ textarea {
 .ticket-row {
     border-bottom: 1px solid #eee;
     padding: 6px;
-}
-
-
-.nickname-label {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
 }
 
 /* ===== 공통 칭호 뱃지 ===== */
