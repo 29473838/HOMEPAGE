@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}오픈소스 라이선스{% endblock %}
+
+{% block content %}
+<h1 class="page-title">오픈소스 라이선스 안내</h1>
+
+<div class="card">
+    <p style="font-size:14px;color:#555;">
+        ShowkerTMS는 여러 오픈소스 소프트웨어의 도움을 받아 제작되었습니다.
+        각 프로젝트와 라이선스 정보를 아래에 안내합니다.
+        상세한 내용은 해당 프로젝트의 공식 저장소 또는 홈페이지를 참고바랍니다.
+    </p>
+
+    <h3>1. TOAST UI Editor</h3>
+    <ul>
+        <li>홈페이지 / 저장소: <a href="https://github.com/nhn/tui.editor" target="_blank">https://github.com/nhn/tui.editor</a></li>
+        <li>라이선스: MIT License</li>
+        <li>주요 사용처: 공지사항 작성/수정 에디터, 서식 지정 기능 제공</li>
+    </ul>
+
+    <h3>2. Flask</h3>
+    <ul>
+        <li>저장소: <a href="https://github.com/pallets/flask" target="_blank">https://github.com/pallets/flask</a></li>
+        <li>라이선스: BSD-3-Clause</li>
+    </ul>
+
+    <h3>3. SQLAlchemy</h3>
+    <ul>
+        <li>저장소: <a href="https://github.com/sqlalchemy/sqlalchemy" target="_blank">https://github.com/sqlalchemy/sqlalchemy</a></li>
+        <li>라이선스: MIT License</li>
+    </ul>
+
+    <h3>4. 기타 사용 라이브러리</h3>
+    <p>
+        이 외에도 Flask 생태계의 다양한 라이브러리(Flask-Login, Flask-Mail 등)를 사용하고 있습니다.
+        각 라이브러리의 세부 라이선스는 해당 프로젝트 페이지에서 확인하실 수 있습니다.
+    </p>
+
+    <p style="font-size:12px;color:#777;margin-top:10px;">
+        ※ 이 페이지는 서비스에서 사용 중인 오픈소스 구성에 따라서 수정·보완될 수 있습니다.
+    </p>
+</div>
+{% endblock %}
