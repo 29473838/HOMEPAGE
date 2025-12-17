@@ -1,52 +1,58 @@
 {% extends "base.html" %}
 {% block title %}공지 수정 - {{ notice.title }}{% endblock %}
+
 {% block content %}
 <div class="notice-page-wrapper">
     <h1 class="page-title">공지 수정</h1>
 
-    <div class="card" style="width:80%;max-width:1100px;">
-        <form method="POST" enctype="multipart/form-data">
-            <label>공지 유형</label>
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" id="notice-edit-form">
+            <label>공지 분류</label>
             <select name="category" required>
-                <option value="일반공지" {% if notice.category == '일반공지' %}selected{% endif %}>일반공지</option>
-                <option value="방송공지" {% if notice.category == '방송공지' %}selected{% endif %}>방송공지</option>
-                <option value="패치노트" {% if notice.category == '패치노트' %}selected{% endif %}>패치노트</option>
+                <option value="일반공지"  {% if notice.category == "일반공지" %}selected{% endif %}>일반공지</option>
+                <option value="방송공지" {% if notice.category == "방송공지" %}selected{% endif %}>방송공지</option>
+                <option value="패치노트" {% if notice.category == "패치노트" %}selected{% endif %}>패치노트</option>
             </select>
 
             <label>제목</label>
             <input type="text" name="title" value="{{ notice.title }}" required>
 
             <label>내용</label>
-            <textarea name="content"
-                      class="notice-editor"
-                      required>{{ notice.content|safe }}</textarea>
+            <div id="notice-editor"></div>
+            <textarea id="notice-content" name="content" style="display:none;">
+{{ notice.content|safe }}
+            </textarea>
 
-            <button type="submit" class="btn" style="margin-top:10px;">수정 완료</button>
+            <label style="margin-top:10px;">이미지 변경 (선택)</label>
+            <input type="file" name="image" accept="image/*">
+            {% if notice.image_url %}
+                <p style="font-size:12px;color:#666;margin-top:4px;">
+                    현재 이미지: <a href="{{ notice.image_url }}" target="_blank">열기</a>
+                </p>
+            {% endif %}
+
+            <button type="submit" class="btn" style="margin-top:12px;">수정 완료</button>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js"
-        referrerpolicy="origin"></script>
+<link rel="stylesheet"
+      href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+
 <script>
-  tinymce.init({
-    selector: 'textarea.notice-editor',
-    plugins: 'lists link table code',
-    menubar: false,
-    statusbar: false,
-    toolbar: [
-      'undo redo | blocks fontfamily fontsize',
-      '| bold italic underline strikethrough forecolor backcolor',
-      '| alignleft aligncenter alignright alignjustify',
-      '| bullist numlist | removeformat | code'
-    ].join(' '),
-    fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px',
-    font_family_formats: [
-      '기본폰트=system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
-      'Noto Sans KR="Noto Sans KR",sans-serif',
-      'Nanum Gothic="Nanum Gothic",sans-serif'
-    ].join(';'),
-    content_style: 'body { font-family: "Noto Sans KR", system-ui, sans-serif; }'
-  });
+    const hiddenInput = document.getElementById('notice-content');
+
+    const editor = new toastui.Editor({
+        el: document.querySelector('#notice-editor'),
+        height: '500px',
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        initialValue: hiddenInput.value || ''
+    });
+
+    document.getElementById('notice-edit-form').addEventListener('submit', function () {
+        hiddenInput.value = editor.getHTML();
+    });
 </script>
 {% endblock %}
