@@ -1,18 +1,52 @@
 {% extends "base.html" %}
-{% block title %}공지 수정 - 소리가 담긴 타임머신{% endblock %}
+{% block title %}공지 수정 - {{ notice.title }}{% endblock %}
 {% block content %}
 <div class="notice-page-wrapper">
-    <div class="page-title">공지 수정</div>
-    
-    <form method="POST" class="content-form">
-        <select name="category" required>
-            <option value="일반공지">일반공지</option>
-            <option value="방송공지">방송공지</option>
-            <option value="패치노트">패치노트</option>
-        </select>
-        <input type="text" name="title" value="{{ notice.title }}" required>
-        <textarea name="content" required>{{ notice.content }}</textarea>
-        <button type="submit" class="btn-primary">저장</button>
-    </form>
+    <h1 class="page-title">공지 수정</h1>
+
+    <div class="card" style="width:80%;max-width:1100px;">
+        <form method="POST" enctype="multipart/form-data">
+            <label>공지 유형</label>
+            <select name="category" required>
+                <option value="일반공지" {% if notice.category == '일반공지' %}selected{% endif %}>일반공지</option>
+                <option value="방송공지" {% if notice.category == '방송공지' %}selected{% endif %}>방송공지</option>
+                <option value="패치노트" {% if notice.category == '패치노트' %}selected{% endif %}>패치노트</option>
+            </select>
+
+            <label>제목</label>
+            <input type="text" name="title" value="{{ notice.title }}" required>
+
+            <label>내용</label>
+            <textarea name="content"
+                      class="notice-editor"
+                      required>{{ notice.content|safe }}</textarea>
+
+            <button type="submit" class="btn" style="margin-top:10px;">수정 완료</button>
+        </form>
+    </div>
 </div>
+
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: 'textarea.notice-editor',
+    plugins: 'lists link table code',
+    menubar: false,
+    statusbar: false,
+    toolbar: [
+      'undo redo | blocks fontfamily fontsize',
+      '| bold italic underline strikethrough forecolor backcolor',
+      '| alignleft aligncenter alignright alignjustify',
+      '| bullist numlist | removeformat | code'
+    ].join(' '),
+    fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px',
+    font_family_formats: [
+      '기본폰트=system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+      'Noto Sans KR="Noto Sans KR",sans-serif',
+      'Nanum Gothic="Nanum Gothic",sans-serif'
+    ].join(';'),
+    content_style: 'body { font-family: "Noto Sans KR", system-ui, sans-serif; }'
+  });
+</script>
 {% endblock %}
