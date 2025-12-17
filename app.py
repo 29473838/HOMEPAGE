@@ -966,8 +966,6 @@ def oss_licenses():
 # ==============================================
 # 연도작성
 # ==============================================
-from datetime import datetime
-
 @app.context_processor
 def inject_current_year():
     return {'current_year': datetime.utcnow().year}
