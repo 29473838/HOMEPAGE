@@ -14,7 +14,18 @@
     {% if notices %}
         {% for n in notices %}
         <div class="card notice-card">
-            <h3>{{ n.title }}</h3>
+            <h3>
+                {% if n.category %}
+                    <span class="notice-tag
+                        {% if n.category == '방송공지' %} notice-tag-stream
+                        {% elif n.category == '패치노트' %} notice-tag-patch
+                        {% else %} notice-tag-general
+                        {% endif %}">
+                        {{ n.category }}
+                    </span>
+                {% endif %}
+                {{ n.title }}
+            </h3>
 
             <div style="font-size:12px;color:#666; margin-top:4px;">
                 {# 작성자 닉네임 + 칭호 #}
