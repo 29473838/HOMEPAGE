@@ -488,19 +488,32 @@ def notice_list():
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
 def notice_write():
-    if not inject_permission_checker()["has_permission"](current_user, "notice_write"):
-        abort(403)
+    if not has_permission(current_user, "notice_write"):
+        flash("공지 작성 권한이 없습니다.", "danger")
+        return redirect(url_for("notice_list"))
 
     if request.method == "POST":
-        title = request.form["title"]
-        content = request.form["content"]
+        title = request.form.get("title", "").strip()
+        content = request.form.get("content", "").strip()
+        category = request.form.get("category") or "일반공지"
 
-        n = Notice(title=title, content=content, author_id=current_user.id)
-        db.session.add(n)
+        if category not in ["일반공지", "방송공지", "패치노트"]:
+            category = "일반공지"
+
+        if not title or not content:
+            flash("제목과 내용을 입력해주세요.", "danger")
+            return redirect(url_for("notice_write"))
+
+        notice = Notice(
+            title=title,
+            content=content,
+            category=category,
+            author_id=current_user.id,
+        )
+        db.session.add(notice)
         db.session.commit()
-
-        flash("공지 등록 완료!")
-        return redirect("/notice")
+        flash("공지글이 등록되었습니다.", "success")
+        return redirect(url_for("notice_list"))
 
     return render_template("notice_write.html")
     
