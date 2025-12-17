@@ -5,6 +5,11 @@
     <div class="page-title">새 공지 작성</div>
     
     <form method="POST" enctype="multipart/form-data" class="content-form">
+        <select name="category" required>
+            <option value="일반공지">일반공지</option>
+            <option value="방송공지">방송공지</option>
+            <option value="패치노트">패치노트</option>
+        </select>
         <input type="text" name="title" placeholder="제목" required>
         <textarea name="content" placeholder="공지 내용을 적어주세요 (텍스트 / 링크 등)" required></textarea>
         <label>이미지 첨부 (선택)</label>
