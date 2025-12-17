@@ -5,6 +5,12 @@
     <div class="page-title">공지 수정</div>
     
     <form method="POST" class="content-form">
+        <label>공지 종류</label>
+        <select name="category" required>
+            <option value="일반공지">일반공지</option>
+            <option value="방송공지">방송공지</option>
+            <option value="패치노트">패치노트</option>
+        </select>
         <input type="text" name="title" value="{{ notice.title }}" required>
         <textarea name="content" required>{{ notice.content }}</textarea>
         <button type="submit" class="btn-primary">저장</button>
