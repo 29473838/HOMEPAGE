@@ -20,7 +20,34 @@
     <a href="{{ url_for('business_page') }}">비즈니스</a>
     <a href="{{ url_for('contact_page') }}">문의</a>
     <a href="{{ url_for('qna_list') }}">Q&A</a>
-    <a href="{{ url_for('stream_page') }}">방송 정보</a>
+
+    {# ✅ 방송 정보 + 그 바로 아래에 상태 표시 #}
+    <span class="nav-stream">
+        <a href="{{ url_for('stream_page') }}">방송 정보</a>
+        <span class="nav-stream-status">
+            {% if current_stream %}
+                {% if current_stream.status == "방송중" and current_stream.platform %}
+                    {% if current_stream.url %}
+                        <a href="{{ current_stream.url }}" target="_blank" class="nav-stream-live">
+                            ● LIVE ({{ current_stream.platform }})
+                        </a>
+                    {% else %}
+                        <span class="nav-stream-live">
+                            ● LIVE ({{ current_stream.platform }})
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <span class="nav-stream-text">
+                        상태: {{ current_stream.status }}
+                    </span>
+                {% endif %}
+            {% else %}
+                <span class="nav-stream-text">
+                    상태: 오프라인
+                </span>
+            {% endif %}
+        </span>
+    </span>
 
     {% if current_user.is_authenticated %}
         <a href="{{ url_for('profile') }}">프로필</a>
@@ -33,35 +60,6 @@
         <a href="{{ url_for('register') }}">회원가입</a>
     {% endif %}
 </nav>
-
-{# ▶ 네비게이션 바로 아래 방송 상태 줄 #}
-<div class="stream-status-bar"
-     style="margin:4px auto 0; max-width:1200px; text-align:center; font-size:12px;">
-    {% if current_stream %}
-        {% if current_stream.status == "방송중" and current_stream.platform %}
-            {% if current_stream.url %}
-                <a href="{{ current_stream.url }}" target="_blank"
-                   class="stream-status-live"
-                   style="color:#e53935; font-weight:bold; text-decoration:none;">
-                    ● LIVE ({{ current_stream.platform }})
-                </a>
-            {% else %}
-                <span class="stream-status-live"
-                      style="color:#e53935; font-weight:bold;">
-                    ● LIVE ({{ current_stream.platform }})
-                </span>
-            {% endif %}
-        {% else %}
-            <span class="stream-status-text" style="color:#eeeeee;">
-                상태: {{ current_stream.status }}
-            </span>
-        {% endif %}
-    {% else %}
-        <span class="stream-status-text" style="color:#eeeeee;">
-            상태: 오프라인
-        </span>
-    {% endif %}
-</div>
 
 <main>
     <div class="page-container">
