@@ -488,38 +488,37 @@ def notice_list():
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
 def notice_write():
-    if current_user.role not in ["대표", "부대표", "매니저"]:
+    # 권한 체크
+    if not has_permission(current_user, "notice_write"):
         abort(403)
 
     if request.method == "POST":
-        category = request.form.get("category") or "일반공지"
-        title = request.form.get("title", "").strip()
-        content = request.form.get("content", "").strip()
-
-        if category not in ["일반공지", "방송공지", "패치노트"]:
-            category = "일반공지"
+        title = request.form["title"]
+        content = request.form["content"]       
+        category = request.form.get("category", "일반공지")
 
         image_file = request.files.get("image")
         image_url = None
         if image_file and image_file.filename:
-            pass
+            filename = secure_filename(image_file.filename)
+            upload_path = os.path.join(app.root_path, "static", "uploads", filename)
+            image_file.save(upload_path)
+            image_url = url_for("static", filename=f"uploads/{filename}", _external=False)
 
         notice = Notice(
             title=title,
-            content=content,
+            content=content,     
             category=category,
+            image_url=image_url,
             author_id=current_user.id,
-            image_url=image_url  
         )
-
         db.session.add(notice)
         db.session.commit()
+
         flash("공지사항이 등록되었습니다.", "success")
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_write.html")
-
-    
 
 @app.route("/notice/delete/<int:notice_id>", methods=["POST"])
 @login_required
@@ -543,24 +542,22 @@ def notice_edit(notice_id):
         abort(403)
 
     if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        content = request.form.get("content", "").strip()
-        category = request.form.get("category") or "일반공지"
-        
-        if category not in ["일반공지", "방송공지", "패치노트"]:
-            category = "일반공지"
+        notice.title = request.form["title"]
+        notice.content = request.form["content"]
+        notice.category = request.form.get("category", "일반공지")
 
-        notice.title = title
-        notice.content = content
-        notice.category = category
+        image_file = request.files.get("image")
+        if image_file and image_file.filename:
+            filename = secure_filename(image_file.filename)
+            upload_path = os.path.join(app.root_path, "static", "uploads", filename)
+            image_file.save(upload_path)
+            notice.image_url = url_for("static", filename=f"uploads/{filename}", _external=False)
 
         db.session.commit()
-        flash("공지사항이 수정되었습니다.")
-
+        flash("공지사항이 수정되었습니다.", "success")
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_edit.html", notice=notice)
-
 
 @app.route("/notice/<int:notice_id>/comment", methods=["POST"])
 @login_required
