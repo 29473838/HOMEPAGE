@@ -99,7 +99,7 @@ class Notice(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     author = db.relationship("User", foreign_keys=[author_id])
-    category = db.Column(db.string(20), nullable=False, default="일반공지")
+    category = db.Column(db.String(20), nullable=False, default="일반공지")
 
 
 class QNA(db.Model):
