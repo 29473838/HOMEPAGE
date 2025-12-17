@@ -2,19 +2,28 @@
 {% block title %}공지 작성 - 소리가 담긴 타임머신{% endblock %}
 {% block content %}
 <div class="notice-page-wrapper">
-    <div class="page-title">새 공지 작성</div>
-    
-    <form method="POST" enctype="multipart/form-data" class="content-form">
-        <select name="category" required>
-            <option value="일반공지">일반공지</option>
-            <option value="방송공지">방송공지</option>
-            <option value="패치노트">패치노트</option>
-        </select>
-        <input type="text" name="title" placeholder="제목" required>
-        <textarea name="content" placeholder="공지 내용을 적어주세요 (텍스트 / 링크 등)" required></textarea>
-        <label>이미지 첨부 (선택)</label>
-        <input type="file" name="image" accept="image/*">
-        <button type="submit" class="btn-primary">등록</button>
-    </form>
+    <h1 class="page-title">새 공지 작성</h1>
+
+    <div class="card" style="width:80%;max-width:1100px;">
+        <form method="POST" enctype="multipart/form-data">
+            <label>공지 유형</label>
+            <select name="category" required>
+                <option value="일반공지">일반공지</option>
+                <option value="방송공지">방송공지</option>
+                <option value="패치노트">패치노트</option>
+            </select>
+
+            <label>제목</label>
+            <input type="text" name="title" placeholder="제목" required>
+
+            <label>내용</label>
+            <textarea name="content" placeholder="공지 내용을 적어주세요 (텍스트 / 링크 등)" required></textarea>
+
+            <label>이미지 첨부 (선택)</label>
+            <input type="file" name="image" accept="image/*">
+
+            <button type="submit" class="btn" style="margin-top:10px;">등록</button>
+        </form>
+    </div>
 </div>
 {% endblock %}
