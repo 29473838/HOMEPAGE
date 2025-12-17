@@ -11,7 +11,11 @@ nav {
     top: 0;
     width: 100%;
     padding: 16px 0;
+    display: flex;  
+    justify-content: center;
     text-align: center;
+    align-items: center;
+    gap: 24px;
     font-size: 18px;
     font-weight: bold;
     color: white;
