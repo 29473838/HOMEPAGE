@@ -484,30 +484,32 @@ def notice_list():
     notices = Notice.query.order_by(Notice.created_at.desc()).all()
     return render_template("notice.html", notices=notices)
 
-
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
 def notice_write():
-    # 권한 체크
     if not has_permission(current_user, "notice_write"):
         abort(403)
 
     if request.method == "POST":
-        title = request.form["title"]
-        content = request.form["content"]       
         category = request.form.get("category", "일반공지")
-
+        title = request.form.get("title", "").strip()
+        content_html = request.form.get("content_html", "").strip()
         image_file = request.files.get("image")
+
+        if not title or not content_html:
+            flash("제목과 내용을 모두 입력해주세요.", "danger")
+            return redirect(url_for("notice_write"))
+
         image_url = None
         if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
-            upload_path = os.path.join(app.root_path, "static", "uploads", filename)
-            image_file.save(upload_path)
-            image_url = url_for("static", filename=f"uploads/{filename}", _external=False)
+            save_path = os.path.join(app.static_folder, "uploads", filename)
+            image_file.save(save_path)
+            image_url = url_for("static", filename=f"uploads/{filename}")
 
         notice = Notice(
             title=title,
-            content=content,     
+            content=content_html,  
             category=category,
             image_url=image_url,
             author_id=current_user.id,
@@ -519,6 +521,7 @@ def notice_write():
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_write.html")
+
 
 @app.route("/notice/delete/<int:notice_id>", methods=["POST"])
 @login_required
@@ -542,22 +545,25 @@ def notice_edit(notice_id):
         abort(403)
 
     if request.method == "POST":
-        notice.title = request.form["title"]
-        notice.content = request.form["content"]
-        notice.category = request.form.get("category", "일반공지")
+        notice.category = request.form.get("category", notice.category)
+        notice.title = request.form.get("title", notice.title).strip()
+        content_html = request.form.get("content_html", "").strip()
+        if content_html:
+            notice.content = content_html
 
         image_file = request.files.get("image")
         if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
-            upload_path = os.path.join(app.root_path, "static", "uploads", filename)
-            image_file.save(upload_path)
-            notice.image_url = url_for("static", filename=f"uploads/{filename}", _external=False)
+            save_path = os.path.join(app.static_folder, "uploads", filename)
+            image_file.save(save_path)
+            notice.image_url = url_for("static", filename=f"uploads/{filename}")
 
         db.session.commit()
         flash("공지사항이 수정되었습니다.", "success")
         return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_edit.html", notice=notice)
+
 
 @app.route("/notice/<int:notice_id>/comment", methods=["POST"])
 @login_required
