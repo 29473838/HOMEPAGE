@@ -154,8 +154,6 @@ class NoticeComment(db.Model):
 
     user = db.relationship("User")
 
-
-
 # ==============================================
 # 로그인 로드
 # ==============================================
@@ -182,7 +180,33 @@ def inject_permission_checker():
         return permission in perms
 
     return dict(has_permission=has_permission)
+def inject_globals():
+    return {
+        "has_permission": has_permission,     
+        "current_year": datetime.utcnow().year 
+    }
+def inject_permisson():
+    return dict(has_permission=has_permission)
 
+# ==============================================
+# (추가) 권한조정
+# ==============================================
+def has_permission(user, perm: str) -> bool:
+    if not user.is_authenticated:
+        return False
+
+    if user.role in ["대표", "부대표", "매니저"]:
+        return True
+
+    if perm == "notice_write":
+        return True
+
+    role_perm = {
+        "대표":   {"notice_write", "warning_manage", "promote"},
+        "부대표": {"notice_write", "warning_manage", "promote"},
+        "매니저": {"notice_write", "warning_manage"},
+    }
+    return perm in role_perm.get(user.role, set())
 
 # ==============================================
 # 이메일 발송
@@ -1003,33 +1027,3 @@ def privacy():
 @app.route("/licenses")
 def oss_licenses():
     return render_template("oss_licenses.html")
-
-
-# ==============================================
-# 연도작성
-# ==============================================
-@app.context_processor
-def inject_globals():
-    return {
-        "has_permission": has_permission,     
-        "current_year": datetime.utcnow().year 
-    }
-
-# ==============================================
-# 연도작성
-# ==============================================
-def has_permission(user, perm: str) -> bool:
-    """역할(role)에 따라 권한 문자열을 체크"""
-    if not user.is_authenticated:
-        return False
-
-    role_perm = {
-        "대표":   {"notice_write", "warning_manage", "promote"},
-        "부대표": {"notice_write", "warning_manage", "promote"},
-        "매니저": {"notice_write", "warning_manage"},
-    }
-    return perm in role_perm.get(user.role, set())
-
-
-
-
