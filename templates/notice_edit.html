@@ -24,7 +24,10 @@
             <label>이미지 첨부 (선택, 새로 업로드 시 변경)</label>
             <input type="file" name="image" accept="image/*">
 
-            <button type="submit" class="btn" style="margin-top:10px;">수정 완료</button>
+            <div style="margin-top:12px; display:flex; gap:8px;">
+                <button type="submit" name="action" value="draft" class="btn" style="background:#9e9e9e;">임시저장</button>
+                <button type="submit" name="action" value="publish" class="btn">수정 완료</button>
+            </div>
         </form>
     </div>
 </div>
