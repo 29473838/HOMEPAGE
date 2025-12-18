@@ -101,6 +101,7 @@ class Notice(db.Model):
     author = db.relationship("User", foreign_keys=[author_id])
     category = db.Column(db.String(20), nullable=False, default="일반공지")
     is_draft = db.Column(db.Boolean, nullable=False, default=False)
+    image_url = db.Column(db.String(500))
 
 
 class QNA(db.Model):
