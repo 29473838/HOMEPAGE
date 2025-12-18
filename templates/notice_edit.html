@@ -5,11 +5,11 @@
 <div class="notice-page-wrapper">
     <h1 class="page-title">공지 수정</h1>
 
-    <div class="card">
-        <form method="POST" enctype="multipart/form-data" id="notice-edit-form">
-            <label>공지 분류</label>
+    <div class="card" style="width:100%; max-width:900px;">
+        <form method="POST" enctype="multipart/form-data" id="noticeEditForm">
+            <label>분류</label>
             <select name="category" required>
-                <option value="일반공지"  {% if notice.category == "일반공지" %}selected{% endif %}>일반공지</option>
+                <option value="일반공지" {% if notice.category == "일반공지" %}selected{% endif %}>일반공지</option>
                 <option value="방송공지" {% if notice.category == "방송공지" %}selected{% endif %}>방송공지</option>
                 <option value="패치노트" {% if notice.category == "패치노트" %}selected{% endif %}>패치노트</option>
             </select>
@@ -18,41 +18,43 @@
             <input type="text" name="title" value="{{ notice.title }}" required>
 
             <label>내용</label>
-            <div id="notice-editor"></div>
-            <textarea id="notice-content" name="content" style="display:none;">
-{{ notice.content|safe }}
-            </textarea>
+            <div id="editor">{{ notice.content|safe }}</div>
+            <input type="hidden" name="content_html" id="content_html">
 
-            <label style="margin-top:10px;">이미지 변경 (선택)</label>
+            <label>이미지 첨부 (선택, 새로 업로드 시 변경)</label>
             <input type="file" name="image" accept="image/*">
-            {% if notice.image_url %}
-                <p style="font-size:12px;color:#666;margin-top:4px;">
-                    현재 이미지: <a href="{{ notice.image_url }}" target="_blank">열기</a>
-                </p>
-            {% endif %}
 
-            <button type="submit" class="btn" style="margin-top:12px;">수정 완료</button>
+            <button type="submit" class="btn" style="margin-top:10px;">수정 완료</button>
         </form>
     </div>
 </div>
 
-<link rel="stylesheet"
-      href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
-<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
 <script>
-    const hiddenInput = document.getElementById('notice-content');
+  var Font = Quill.import('formats/font');
+  Font.whitelist = ['sans', 'gowun', 'diphylleia'];
+  Quill.register(Font, true);
 
-    const editor = new toastui.Editor({
-        el: document.querySelector('#notice-editor'),
-        height: '500px',
-        initialEditType: 'wysiwyg',
-        previewStyle: 'vertical',
-        initialValue: hiddenInput.value || ''
-    });
+  const toolbarOptions = [
+    [{ 'font': Font.whitelist }],
+    [{ 'size': ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    ['link'],
+    ['clean']
+  ];
 
-    document.getElementById('notice-edit-form').addEventListener('submit', function () {
-        hiddenInput.value = editor.getHTML();
-    });
+  var quill = new Quill('#editor', {
+    theme: 'snow',
+    modules: { toolbar: toolbarOptions }
+  });
+
+  document.getElementById('noticeEditForm').addEventListener('submit', function () {
+    document.getElementById('content_html').value = quill.root.innerHTML;
+  });
 </script>
 {% endblock %}
