@@ -15,6 +15,9 @@
         {% for n in notices %}
         <div class="card notice-card">
             <h3>
+                {% if n.is_draft %}
+                    [임시저장] 
+                {% endif %}
                 {% if n.category %}
                     <span class="notice-tag
                         {% if n.category == '방송공지' %} notice-tag-stream
