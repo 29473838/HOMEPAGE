@@ -556,10 +556,13 @@ def notice_write():
             title=title,
             content=content_html,
             category=category,
-            image_url=image_url,
             author_id=current_user.id,
             is_draft=(action == "draft"),
         )
+
+        if image_url is not None and hasattr(notice, "image_url"):
+            notice.image_url = image_url
+        
         db.session.add(notice)
         db.session.commit()
 
