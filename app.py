@@ -3,9 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, date
 import smtplib
 from email.mime.text import MIMEText
+import random
 
 # -------------------------------------------
 # Flask 설정
@@ -88,6 +89,8 @@ class User(db.Model, UserMixin):
     title = db.Column(db.String(50), nullable=True)
     title_color = db.Column(db.String(20), default="#ff6fb5")
     title_style = db.Column(db.String(50), default="basic")
+    coins = db.Column(db.Integer, default=0)
+    last_attendance = db.Column(db.Date, nullable=True)
 
 
 class Notice(db.Model):
