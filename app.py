@@ -618,6 +618,13 @@ def notice_comment(notice_id):
 @app.route("/notice/<int:notice_id>")
 def notice_detail(notice_id):
     notice = Notice.query.get_or_404(notice_id)
+
+    if notice.is_draft:
+        if not current_user.is_authenticated:
+            abort(404)
+        if notice.author_id != current_user.id and current_user.role not in ["대표", "부대표", "매니저"]:
+            abort(404)
+    
     comments = NoticeComment.query.filter_by(notice_id=notice.id) \
                                   .order_by(NoticeComment.created_at.asc()) \
                                   .all()
