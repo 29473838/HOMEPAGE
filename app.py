@@ -594,6 +594,7 @@ def notice_edit(notice_id):
         abort(403)
 
     if request.method == "POST":
+        action = request.form.get("action", "publish")
         notice.category = request.form.get("category", notice.category)
         notice.title = request.form.get("title", notice.title).strip()
         content_html = request.form.get("content_html", "").strip()
