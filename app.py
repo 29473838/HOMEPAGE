@@ -482,7 +482,23 @@ def logout():
 # ==============================================
 @app.route("/notice")
 def notice_list():
-    notices = Notice.query.order_by(Notice.created_at.desc()).all()
+    if not = current_user.is_autherticated or not has_permisson(current_user, "notice_write"):
+        notices = (
+            Notice.query
+            .filter_by(is_draft=False)
+            .order_by(Notice.created_at.desc())
+            .all()
+        )
+    else:
+        notices = (
+            Notice.query
+            .filter(
+                (Notice.is_draft == False) |
+                (Notice.author_id == current_user.id)
+            )
+            .order_by(Notice.created_at.desc())
+            .all()
+        )
     return render_template("notice.html", notices=notices)
 
 @app.route("/notice/write", methods=["GET", "POST"])
@@ -492,6 +508,7 @@ def notice_write():
         abort(403)
 
     if request.method == "POST":
+        action = request.form.get("action", "publish")
         category = request.form.get("category", "일반공지")
         title = request.form.get("title", "").strip()
         content_html = request.form.get("content_html", "").strip()
@@ -514,12 +531,17 @@ def notice_write():
             category=category,
             image_url=image_url,
             author_id=current_user.id,
+            is_draft=(action == "draft")
         )
         db.session.add(notice)
         db.session.commit()
 
-        flash("공지사항이 등록되었습니다.", "success")
-        return redirect(url_for("notice_detail", notice_id=notice.id))
+        if action == "draft":
+            flash("공지사항이 임시저장되었습니다.", "success")
+                return redirect(url_for("notice_edit", notice_id=notice.id))
+        else:
+            flash("공지사항이 등록되었습니다.", "success")
+            return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_write.html")
 
@@ -559,9 +581,15 @@ def notice_edit(notice_id):
             image_file.save(save_path)
             notice.image_url = url_for("static", filename=f"uploads/{filename}")
 
+        notice.is_draft = (action == "draft")
         db.session.commit()
-        flash("공지사항이 수정되었습니다.", "success")
-        return redirect(url_for("notice_detail", notice_id=notice.id))
+
+        if action == "draft":
+            flash("임시저장되었습니다.", "success")
+            return redirect(url_for("notice_edit", notice_id=notice.id))
+        else:
+            flash("공지사항이 수정되었습니다.", "success")
+            return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_edit.html", notice=notice)
 
