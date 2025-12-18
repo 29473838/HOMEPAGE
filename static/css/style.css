@@ -576,12 +576,12 @@ textarea {
 
 /* Quill 폰트 옵션 */
 .ql-font-sans {
-    font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard;
 }
 .ql-font-gowun {
-    font-family: "Gowun Dodum", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Gowun Dodum", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Gowun-Dodum;
 }
 .ql-font-diphylleia {
-    font-family: "Diphylleia", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Diphylleia", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Diphylleia;
 }
 
