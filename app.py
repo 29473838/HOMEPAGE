@@ -506,24 +506,27 @@ def logout():
 # ==============================================
 @app.route("/notice")
 def notice_list():
-    if not = current_user.is_autherticated or not has_permisson(current_user, "notice_write"):
+    if (not current_user.is_authenticated) or (not has_permission(current_user, "notice_write")):
         notices = (
             Notice.query
             .filter_by(is_draft=False)
             .order_by(Notice.created_at.desc())
             .all()
         )
+
     else:
         notices = (
             Notice.query
             .filter(
-                (Notice.is_draft == False) |
-                (Notice.author_id == current_user.id)
+                (Notice.is_draft == False) |  
+                (Notice.author_id == current_user.id)  
             )
             .order_by(Notice.created_at.desc())
             .all()
         )
+
     return render_template("notice.html", notices=notices)
+
 
 @app.route("/notice/write", methods=["GET", "POST"])
 @login_required
@@ -532,7 +535,7 @@ def notice_write():
         abort(403)
 
     if request.method == "POST":
-        action = request.form.get("action", "publish")
+        action = request.form.get("action", "publish") 
         category = request.form.get("category", "일반공지")
         title = request.form.get("title", "").strip()
         content_html = request.form.get("content_html", "").strip()
@@ -551,24 +554,23 @@ def notice_write():
 
         notice = Notice(
             title=title,
-            content=content_html,  
+            content=content_html,
             category=category,
             image_url=image_url,
             author_id=current_user.id,
-            is_draft=(action == "draft")
+            is_draft=(action == "draft"),
         )
         db.session.add(notice)
         db.session.commit()
 
         if action == "draft":
             flash("공지사항이 임시저장되었습니다.", "success")
-                return redirect(url_for("notice_edit", notice_id=notice.id))
+            return redirect(url_for("notice_edit", notice_id=notice.id))
         else:
             flash("공지사항이 등록되었습니다.", "success")
             return redirect(url_for("notice_detail", notice_id=notice.id))
 
     return render_template("notice_write.html")
-
 
 @app.route("/notice/delete/<int:notice_id>", methods=["POST"])
 @login_required
