@@ -312,7 +312,8 @@ def profile():
 
     return render_template("profile.html")
 
-
+# ==============================================
+# 대쉬보드 및 어드민파트=# ================================================
 @app.route("/dashboard")
 @login_required
 def dashboard():
