@@ -313,7 +313,7 @@ def profile():
     return render_template("profile.html")
 
 # ==============================================
-# 대쉬보드 및 어드민파트
+# 대쉬보드 및 어드민파트 
 # ================================================
 @app.route("/dashboard")
 @login_required
@@ -360,6 +360,46 @@ def dashboard():
         tickets=tickets,
         q=q,
     )
+
+@app.route("/dashboard/coins/<int:user_id>", methods=["POST"])
+@login_required
+def dashboard_update_coins(user_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        flash("접근 권한이 없습니다.", "danger")
+        return redirect(url_for("index"))
+    user = User.query.get_or_404(user_id)
+
+    action = request.form.get("coins_action", "set")
+    raw_amount = request.form.get("amount", "a")
+
+    try:
+        amount = int(raw_amount)
+    except ValueError:
+        amount = 0
+
+    if amount < 0:
+        amount = 0
+
+    if user.coins is None:
+        user.coins = 0
+
+    if action == "add":
+        user.coins += amount
+        msg = f"{user.username} 님의 저화 {amount}장 추가되었습니다."
+    elif action == "sub":
+        user.coins = max(0, user.coins - amount)
+        msg = f"{user.username} 님의 저화 {amount}장 차감되었습니다."
+    elif action == "confiscate":
+        user.coins = 0
+        msg = f"{user.username} 님의 저화가 전부 몰수되었습니다."
+    else:
+        user.coins = amount
+        msg = f"{user.username} 님의 저화를 {amount}장으로 설정되었습니다."
+
+    db.session.commit()
+    flash(msg, "successs")
+
+    return redirect(url_for("dashboard"))
 
 @app.route("/admin/user/<int:user_id>/warn", methods=["POST"])
 @admin_required
