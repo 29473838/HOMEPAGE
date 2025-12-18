@@ -554,3 +554,34 @@ textarea {
 .footer-sep {
     opacity: 0.7;
 }
+
+/* Quill 에디터 공통 스타일 */
+.ql-toolbar.ql-snow {
+    border-radius: 12px 12px 0 0;
+    border-color: #f0a9d8;
+    background: rgba(255,255,255,0.95);
+}
+
+.ql-container.ql-snow {
+    border-radius: 0 0 12px 12px;
+    border-color: #f0a9d8;
+    background: rgba(255,255,255,0.97);
+    min-height: 260px;
+    font-size: 14px;
+}
+
+.ql-editor {
+    min-height: 220px;
+}
+
+/* Quill 폰트 옵션 */
+.ql-font-sans {
+    font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.ql-font-gowun {
+    font-family: "Gowun Dodum", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.ql-font-diphylleia {
+    font-family: "Diphylleia", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
