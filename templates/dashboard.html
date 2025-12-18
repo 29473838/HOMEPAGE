@@ -9,7 +9,7 @@
     <h3>유저 검색</h3>
     <form method="get" style="display:flex; gap:8px; align-items:center;">
         <input type="text" name="q" value="{{ q }}" placeholder="닉네임 / 이메일 / 아이디 검색" style="flex:1;">
-        <!-- 페이지 리셋을 위해 page는 1로 고정 -->
+        <!-- 티켓 페이지는 유지 -->
         <input type="hidden" name="ticket_page" value="{{ tickets.page }}">
         <button type="submit" class="btn">검색</button>
     </form>
@@ -20,6 +20,7 @@
     <h3>유저 리스트</h3>
     {% if users.items %}
     <table class="admin-table">
+        <thead>
         <tr>
             <th>ID</th>
             <th>닉네임</th>
@@ -27,57 +28,150 @@
             <th>이메일</th>
             <th>경고</th>
             <th>상태</th>
+            <th>저화</th>
+            <th>저화 관리</th>
             <th>관리</th>
         </tr>
+        </thead>
+        <tbody>
         {% for u in users.items %}
         <tr>
             <td>{{ u.id }}</td>
-            <td>{{ u.username }}</td>
+
+            <!-- 닉네임 + 칭호 -->
+            <td>
+                <span class="nickname-label"
+                      style="background: {{ u.display_color or '#444' }};">
+                    {{ u.username }}
+                </span>
+                {% if u.title %}
+                    <span class="title-badge title-style-{{ u.title_style or 'basic' }}"
+                          style="--title-main-color: {{ u.title_color or '#ff6fb5' }};">
+                        {{ u.title }}
+                    </span>
+                {% endif %}
+            </td>
+
             <td>{{ u.role }}</td>
             <td>{{ u.email }}</td>
             <td>{{ u.warnings or 0 }}</td>
+
             <td>
                 {% if u.is_banned %}
-                    <span style="color:red;">정지</span>
+                    <span style="color:#e53935; font-weight:600;">정지</span>
                 {% else %}
-                    <span style="color:green;">정상</span>
+                    <span style="color:#4caf50; font-weight:600;">정상</span>
                 {% endif %}
             </td>
+
+            <!-- 🔹 저화 표시 -->
+            <td>
+                <strong>{{ u.coins or 0 }}</strong> 장
+            </td>
+
+            <!-- 🔹 저화 관리 (추가 / 제거 / 몰수) -->
+            <td>
+                {% if has_permission(current_user, 'warning_manage') or has_permission(current_user, 'promote') %}
+                <form method="post"
+                      action="{{ url_for('dashboard_update_coins', user_id=u.id) }}"
+                      style="display:flex; flex-direction:column; gap:4px; min-width:210px;">
+
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <input type="number"
+                               name="amount"
+                               value="10"
+                               min="0"
+                               style="width:70px; padding:4px 6px; font-size:12px;">
+
+                        <select name="action" style="font-size:12px; padding:4px 6px; flex:1;">
+                            <option value="add">추가</option>
+                            <option value="sub">제거</option>
+                            <option value="confiscate">몰수(0장)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit"
+                            class="btn-small"
+                            style="padding:4px 8px; font-size:12px; background:#7e57c2; color:#fff; border:none; border-radius:999px;">
+                        저화 적용
+                    </button>
+                </form>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <!-- 기존 관리 버튼들 -->
             <td>
                 <!-- 경고 증가 -->
-                <form method="post" action="{{ url_for('admin_user_warn', user_id=u.id) }}" style="display:inline;">
-                    <button class="btn-small btn-warn">경고 +1</button>
+                <form method="post"
+                      action="{{ url_for('admin_user_warn', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;">
+                    <button class="btn-small btn-warn"
+                            style="background:#ffb300; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        경고 +1
+                    </button>
                 </form>
                 
                 <!-- 경고 감소 -->
-                <form method="post" action="{{ url_for('admin_user_unwarn', user_id=u.id) }}" style="display:inline;">
-                    <button class="btn-small btn-safe">경고 -1</button>
+                <form method="post"
+                      action="{{ url_for('admin_user_unwarn', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;">
+                    <button class="btn-small btn-safe"
+                            style="background:#43a047; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        경고 -1
+                    </button>
                 </form>
 
                 <!-- 정지 / 해제 -->
                 {% if not u.is_banned %}
-                <form method="post" action="{{ url_for('admin_user_ban', user_id=u.id) }}" style="display:inline;">
-                    <button type="submit" class="btn-small danger">정지</button>
+                <form method="post"
+                      action="{{ url_for('admin_user_ban', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;">
+                    <button type="submit"
+                            class="btn-small danger"
+                            style="background:#e53935; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        정지
+                    </button>
                 </form>
                 {% else %}
-                <form method="post" action="{{ url_for('admin_user_unban', user_id=u.id) }}" style="display:inline;">
-                    <button type="submit" class="btn-small">정지 해제</button>
+                <form method="post"
+                      action="{{ url_for('admin_user_unban', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;">
+                    <button type="submit"
+                            class="btn-small"
+                            style="background:#546e7a; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        정지 해제
+                    </button>
                 </form>
                 {% endif %}
 
                 <!-- 강제 로그아웃 -->
-                <form method="post" action="{{ url_for('admin_user_force_logout', user_id=u.id) }}" style="display:inline;">
-                    <button type="submit" class="btn-small">강제 로그아웃</button>
+                <form method="post"
+                      action="{{ url_for('admin_user_force_logout', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;">
+                    <button type="submit"
+                            class="btn-small"
+                            style="background:#5c6bc0; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        강제 로그아웃
+                    </button>
                 </form>
 
                 <!-- 계정 삭제 -->
-                <form method="post" action="{{ url_for('admin_user_delete', user_id=u.id) }}" style="display:inline;" 
+                <form method="post"
+                      action="{{ url_for('admin_user_delete', user_id=u.id) }}"
+                      style="display:inline-block; margin:1px 0;"
                       onsubmit="return confirm('정말 이 계정을 삭제하시겠습니까?');">
-                    <button type="submit" class="btn-small danger">삭제</button>
+                    <button type="submit"
+                            class="btn-small danger"
+                            style="background:#c62828; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                        삭제
+                    </button>
                 </form>
             </td>
         </tr>
         {% endfor %}
+        </tbody>
     </table>
     {% else %}
         <p>가입한 유저가 없습니다.</p>
@@ -148,7 +242,9 @@
 
                 <!-- 상태/답변 수정 + 삭제 버튼 -->
                 <div style="margin-top:6px;">
-                    <form method="post" action="{{ url_for('admin_ticket_status', ticket_id=t.id) }}" style="display:inline-block; margin-right:8px;">
+                    <form method="post"
+                          action="{{ url_for('admin_ticket_status', ticket_id=t.id) }}"
+                          style="display:inline-block; margin-right:8px;">
                         <select name="status">
                             <option value="대기중"   {% if t.status == "대기중" %}selected{% endif %}>대기중</option>
                             <option value="처리중"   {% if t.status == "처리중" %}selected{% endif %}>처리중</option>
@@ -156,12 +252,22 @@
                             <option value="처리불가" {% if t.status == "처리불가" %}selected{% endif %}>처리불가</option>
                         </select>
                         <input type="text" name="answer" placeholder="답변 내용(선택)" style="width:260px;">
-                        <button type="submit" class="btn-small">저장</button>
+                        <button type="submit"
+                                class="btn-small"
+                                style="background:#26a69a; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                            저장
+                        </button>
                     </form>
 
-                    <form method="post" action="{{ url_for('admin_ticket_delete', ticket_id=t.id) }}" style="display:inline-block;"
+                    <form method="post"
+                          action="{{ url_for('admin_ticket_delete', ticket_id=t.id) }}"
+                          style="display:inline-block;"
                           onsubmit="return confirm('이 문의를 삭제하시겠습니까?');">
-                        <button type="submit" class="btn-small danger">삭제</button>
+                        <button type="submit"
+                                class="btn-small danger"
+                                style="background:#c62828; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                            삭제
+                        </button>
                     </form>
                 </div>
             </div>
