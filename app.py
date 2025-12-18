@@ -313,21 +313,53 @@ def profile():
     return render_template("profile.html")
 
 # ==============================================
-# 대쉬보드 및 어드민파트=# ================================================
+# 대쉬보드 및 어드민파트
+# ================================================
 @app.route("/dashboard")
 @login_required
 def dashboard():
+
     if current_user.role not in ["대표", "부대표", "매니저"]:
-        flash("접근 권한이 없습니다.")
-        return redirect("/")
+        flash("접근 권한이 없습니다.", "danger")
+        return redirect(url_for("index"))
 
     user_page = request.args.get("user_page", 1, type=int)
     ticket_page = request.args.get("ticket_page", 1, type=int)
+    q = request.args.get("q", "").strip()
 
-    users = User.query.order_by(User.id.desc()).paginate(page=user_page, per_page=10)
-    tickets = ContactTicket.query.order_by(ContactTicket.created_at.desc()).paginate(page=ticket_page, per_page=10)
+    user_query = User.query
 
-    return render_template("dashboard.html", users=users, tickets=tickets)
+    if q:
+        like = f"%{q}%"
+        conditions = [
+            User.username.ilike(like),
+            User.email.ilike(like),
+        ]
+
+        if q.isdigit():
+            conditions.append(User.id == int(q))
+
+        user_query = user_query.filter(or_(*conditions))
+
+    users = (
+        user_query
+        .order_by(User.id.desc())
+        .paginate(page=user_page, per_page=10)
+    )
+
+
+    tickets = (
+        ContactTicket.query
+        .order_by(ContactTicket.created_at.desc())
+        .paginate(page=ticket_page, per_page=10)
+    )
+
+    return render_template(
+        "dashboard.html",
+        users=users,
+        tickets=tickets,
+        q=q,
+    )
 
 @app.route("/admin/user/<int:user_id>/warn", methods=["POST"])
 @admin_required
