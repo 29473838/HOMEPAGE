@@ -1064,22 +1064,6 @@ def coin_attendance():
 
     return redirect(url_for("coin_page"))
 
-
-@app.route("/coin/minigame", methods=["POST"])
-@login_required
-def coin_minigame():
-    gain = random.randint(0, 5)
-
-    if gain == 0:
-        flash("꽝! 다음에 다시 도전해보세요.", "danger")
-    else:
-        current_user.coins = (current_user.coins or 0) + gain
-        db.session.commit()
-        flash(f"축하합니다! 미니게임으로 저화 {gain}장을 획득했습니다.", "success")
-
-    return redirect(url_for("coin_page"))
-
-
 @app.route("/coin/gacha", methods=["POST"])
 @login_required
 def coin_gacha():
