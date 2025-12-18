@@ -1037,3 +1037,70 @@ def privacy():
 @app.route("/licenses")
 def oss_licenses():
     return render_template("oss_licenses.html")
+
+
+
+# ==============================================
+# 저화
+# ==============================================
+@app.route("/coin")
+@login_required
+def coin_page():
+    return render_template("coin.html")
+
+
+@app.route("/coin/attendance", methods=["POST"])
+@login_required
+def coin_attendance():
+    today = date.today()
+
+    if current_user.last_attendance == today:
+        flash("오늘은 이미 출석을 완료했습니다.", "danger")
+    else:
+        current_user.last_attendance = today
+        current_user.coins = (current_user.coins or 0) + 10
+        db.session.commit()
+        flash("출석 체크 완료! 저화 10장을 획득했습니다.", "success")
+
+    return redirect(url_for("coin_page"))
+
+
+@app.route("/coin/minigame", methods=["POST"])
+@login_required
+def coin_minigame():
+    gain = random.randint(0, 5)
+
+    if gain == 0:
+        flash("꽝! 다음에 다시 도전해보세요.", "danger")
+    else:
+        current_user.coins = (current_user.coins or 0) + gain
+        db.session.commit()
+        flash(f"축하합니다! 미니게임으로 저화 {gain}장을 획득했습니다.", "success")
+
+    return redirect(url_for("coin_page"))
+
+
+@app.route("/coin/gacha", methods=["POST"])
+@login_required
+def coin_gacha():
+    cost = 5
+
+    if (current_user.coins or 0) < cost:
+        flash("저화가 부족해서 뽑기를 할 수 없습니다. (필요: 5장)", "danger")
+        return redirect(url_for("coin_page"))
+
+    current_user.coins -= cost
+
+    roll = random.randint(1, 100)
+    if roll <= 50:
+        reward = 3
+    elif roll <= 75:
+        reward = 5
+    else:
+        reward = 15
+
+    current_user.coins += reward
+    db.session.commit()
+
+    flash(f"뽑기 결과! 저화 {reward}장을 얻었습니다. (사용: {cost}장)", "success")
+    return redirect(url_for("coin_page"))
