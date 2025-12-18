@@ -1150,8 +1150,8 @@ def coin_gacha():
 
     roll = random.randint(1, 100)
     if roll <= 50:
-        reward = 3
-    elif roll <= 75:
+        reward = 0
+    elif roll <= 90:
         reward = 5
     else:
         reward = 15
