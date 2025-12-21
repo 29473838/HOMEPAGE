@@ -374,19 +374,118 @@ def dashboard():
         .paginate(page=user_page, per_page=10)
     )
 
-
+    
     tickets = (
         ContactTicket.query
         .order_by(ContactTicket.created_at.desc())
         .paginate(page=ticket_page, per_page=10)
     )
 
+    goods_list = Goods.query.order_by(Goods.id.desc()).all()
+    talents = (
+        Talent.query
+        .order_by(Talent.sort_order.asc(), Talent.id.asc())
+        .all()
+    )
+
     return render_template(
         "dashboard.html",
         users=users,
+        goods_list=goods_list,
         tickets=tickets,
         q=q,
     )
+
+@app.route("/dashboard/goods/create", methods=["POST"])
+@login_required
+def dashboard_goods_create():
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        abort(403)
+
+    name = request.form.get("name", "").strip()
+    price = request.form.get("price", "").strip()
+    description = request.form.get("description", "").strip()
+    payment_url = request.form.get("payment_url", "").strip()
+    image_url = request.form.get("image_url", "").strip()
+
+    if not name or not price.isdigit():
+        flash("굿즈 이름과 가격(숫자)을 올바르게 입력해주세요.", "danger")
+        return redirect(url_for("dashboard"))
+
+    goods = Goods(
+        name=name,
+        price=int(price),
+        description=description,
+        payment_url=payment_url or None,
+        image_url=image_url or None,
+    )
+    db.session.add(goods)
+    db.session.commit()
+
+    flash("굿즈가 추가되었습니다.", "success")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/dashboard/goods/<int:goods_id>/delete", methods=["POST"])
+@login_required
+def dashboard_goods_delete(goods_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        abort(403)
+
+    goods = Goods.query.get_or_404(goods_id)
+    db.session.delete(goods)
+    db.session.commit()
+
+    flash("굿즈가 삭제되었습니다.", "success")
+    return redirect(url_for("dashboard"))
+
+@app.route("/dashboard/talent/create", methods=["POST"])
+@login_required
+def dashboard_talent_create():
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        abort(403)
+
+    nickname = request.form.get("nickname", "").strip()
+    team = request.form.get("team", "").strip()
+    role = request.form.get("role", "").strip()
+    intro = request.form.get("intro", "").strip()
+    image_url = request.form.get("image_url", "").strip()
+    sort_order = request.form.get("sort_order", "").strip()
+
+    if not nickname:
+        flash("닉네임을 입력해주세요.", "danger")
+        return redirect(url_for("dashboard"))
+
+    sort_value = int(sort_order) if sort_order.isdigit() else 0
+
+    talent = Talent(
+        nickname=nickname,
+        team=team or None,
+        role=role or None,
+        intro=intro or None,
+        image_url=image_url or None,
+        sort_order=sort_value,
+    )
+    db.session.add(talent)
+    db.session.commit()
+
+    flash("텔런트가 추가되었습니다.", "success")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/dashboard/talent/<int:talent_id>/delete", methods=["POST"])
+@login_required
+def dashboard_talent_delete(talent_id):
+    if current_user.role not in ["대표", "부대표", "매니저"]:
+        abort(403)
+
+    talent = Talent.query.get_or_404(talent_id)
+    db.session.delete(talent)
+    db.session.commit()
+
+    flash("텔런트가 삭제되었습니다.", "success")
+    return redirect(url_for("dashboard"))
+
 
 @app.route("/dashboard/coins/<int:user_id>", methods=["POST"])
 @login_required
