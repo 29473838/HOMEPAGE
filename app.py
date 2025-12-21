@@ -1188,3 +1188,31 @@ def coin_gacha():
 
     flash(f"뽑기 결과! 저화 {reward}장을 얻었습니다. (사용: {cost}장)", "success")
     return redirect(url_for("coin_page"))
+
+
+@app.route("/goods")
+def goods_page():
+    goods_list = (
+        Goods.query
+        .filter_by(is_active=True)
+        .order_by(Goods.id.asc())
+        .all()
+    )
+    return render_template("goods.html", goods_list=goods_list)
+
+
+@app.route("/talent")
+def talent_page():
+    talents = (
+        Talent.query
+        .filter_by(is_active=True)
+        .order_by(Talent.team.asc(), Talent.sort_order.asc(), Talent.id.asc())
+        .all()
+    )
+
+    teams = {}
+    for t in talents:
+        key = t.team or "기타"
+        teams.setdefault(key, []).append(t)
+
+    return render_template("talent.html", teams=teams)
