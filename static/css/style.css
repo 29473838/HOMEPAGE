@@ -762,3 +762,124 @@ textarea {
     }
 }
 
+/* 프로필 이미지 */
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-empty {
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.2;
+    color: #999;
+}
+
+.profile-main-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* 버블 */
+
+.talent-team-card {
+    margin-bottom: 18px;
+}
+
+.talent-bubbles {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.talent-bubble {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+.talent-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #eee;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.talent-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.talent-avatar-empty {
+    font-size: 20px;
+    color: #777;
+}
+
+.talent-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.talent-name {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.talent-role {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.talent-intro {
+    font-size: 13px;
+    color: #444;
+    white-space: pre-line;
+}
+
+@media (max-width: 600px) {
+    .talent-bubble {
+        border-radius: 18px;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .talent-avatar {
+        width: 56px;
+        height: 56px;
+    }
+}
