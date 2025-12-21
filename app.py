@@ -8,6 +8,10 @@ import smtplib
 from email.mime.text import MIMEText
 import random
 
+import time
+from werkzeug.utils import secure_filename
+
+
 # -------------------------------------------
 # Flask 설정
 # -------------------------------------------
@@ -91,6 +95,7 @@ class User(db.Model, UserMixin):
     title_style = db.Column(db.String(50), default="basic")
     coins = db.Column(db.Integer, default=0)
     last_attendance = db.Column(db.Date, nullable=True)
+    profile_image_url = db.Column(db.String(255))
 
 
 class Notice(db.Model):
@@ -316,17 +321,36 @@ def contact_page():
 @login_required
 def profile():
     if request.method == "POST":
-        new_username   = request.form.get("username")
-        new_color      = request.form.get("display_color")
-        new_title      = request.form.get("title_text")
-        new_title_style = request.form.get("title_style")
-        new_title_color = request.form.get("title_color")
+        new_username    = (request.form.get("username") or "").strip()
+        new_color       = request.form.get("display_color") or None
+        new_title       = (request.form.get("title_text") or "").strip()
+        new_title_style = request.form.get("title_style") or None
+        new_title_color = request.form.get("title_color") or None
 
-        current_user.username    = new_username
+        if new_username:
+            current_user.username = new_username
+
         current_user.display_color = new_color
-        current_user.title       = new_title
-        current_user.title_style = new_title_style
-        current_user.title_color = new_title_color
+        current_user.title         = new_title or None
+        current_user.title_style   = new_title_style or None
+        current_user.title_color   = new_title_color or None
+
+        file = request.files.get("profile_image")
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            ext = os.path.splitext(filename)[1].lower()  
+
+            upload_dir = os.path.join(app.static_folder, "uploads", "profiles")
+            os.makedirs(upload_dir, exist_ok=True)
+
+            unique_name = f"user_{current_user.id}_{int(time.time())}{ext}"
+            save_path = os.path.join(upload_dir, unique_name)
+            file.save(save_path)
+
+            current_user.profile_image_url = url_for(
+                "static",
+                filename=f"uploads/profiles/{unique_name}",
+            )
 
         try:
             db.session.commit()
@@ -338,6 +362,7 @@ def profile():
         return redirect("/profile")
 
     return render_template("profile.html")
+
 
 # ==============================================
 # 대쉬보드 및 어드민파트 
