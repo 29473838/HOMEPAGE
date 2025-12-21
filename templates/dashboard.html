@@ -201,6 +201,119 @@
     </div>
 </div>
 
+<!-- 굿즈 관리 -->
+<div class="card">
+    <h3>굿즈 관리</h3>
+
+    <!-- 굿즈 추가 폼 -->
+    <form method="post"
+          action="{{ url_for('dashboard_goods_create') }}"
+          style="margin-bottom:14px;">
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <input type="text" name="name" placeholder="굿즈 이름" style="flex:1 1 140px;" required>
+            <input type="number" name="price" placeholder="가격 (숫자, 원)" style="width:140px;" required>
+            <input type="text" name="payment_url" placeholder="결제/구매 페이지 URL" style="flex:2 1 220px;">
+            <input type="text" name="image_url" placeholder="이미지 URL (선택)" style="flex:1 1 200px;">
+        </div>
+        <textarea name="description" placeholder="굿즈 상세 설명" style="margin-top:6px;"></textarea>
+        <button type="submit" class="btn-small"
+                style="margin-top:6px; padding:5px 10px; border-radius:999px; border:none; background:#42a5f5; color:#fff; font-size:12px;">
+            굿즈 추가
+        </button>
+    </form>
+
+    <!-- 굿즈 목록 -->
+    {% if goods_list %}
+        <table class="admin-table">
+            <tr>
+                <th>ID</th>
+                <th>이름</th>
+                <th>가격</th>
+                <th>관리</th>
+            </tr>
+            {% for g in goods_list %}
+            <tr>
+                <td>{{ g.id }}</td>
+                <td>{{ g.name }}</td>
+                <td>{{ "{:,}".format(g.price) }}원</td>
+                <td>
+                    <form method="post"
+                          action="{{ url_for('dashboard_goods_delete', goods_id=g.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('이 굿즈를 삭제하시겠습니까?');">
+                        <button type="submit" class="btn-small danger"
+                                style="background:#c62828; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                            삭제
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>등록된 굿즈가 없습니다.</p>
+    {% endif %}
+</div>
+
+<!-- 텔런트 / 팀원 관리 -->
+<div class="card">
+    <h3>텔런트 / 팀원 관리</h3>
+
+    <!-- 텔런트 추가 폼 -->
+    <form method="post"
+          action="{{ url_for('dashboard_talent_create') }}"
+          style="margin-bottom:14px;">
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <input type="text" name="nickname" placeholder="닉네임" style="flex:1 1 120px;" required>
+            <input type="text" name="team" placeholder="소속 팀 / 부서" style="flex:1 1 140px;">
+            <input type="text" name="role" placeholder="직책 / 계급 (선택)" style="flex:1 1 120px;">
+            <input type="number" name="sort_order" placeholder="정렬 순서 (작을수록 위)" style="width:140px;">
+            <input type="text" name="image_url" placeholder="프로필 이미지 URL (선택)" style="flex:1 1 200px;">
+        </div>
+        <textarea name="intro" placeholder="간단 소개글" style="margin-top:6px;"></textarea>
+        <button type="submit" class="btn-small"
+                style="margin-top:6px; padding:5px 10px; border-radius:999px; border:none; background:#8e24aa; color:#fff; font-size:12px;">
+            텔런트 추가
+        </button>
+    </form>
+
+    <!-- 텔런트 목록 -->
+    {% if talents %}
+        <table class="admin-table">
+            <tr>
+                <th>ID</th>
+                <th>닉네임</th>
+                <th>소속</th>
+                <th>직책</th>
+                <th>정렬</th>
+                <th>관리</th>
+            </tr>
+            {% for t in talents %}
+            <tr>
+                <td>{{ t.id }}</td>
+                <td>{{ t.nickname }}</td>
+                <td>{{ t.team or "-" }}</td>
+                <td>{{ t.role or "-" }}</td>
+                <td>{{ t.sort_order }}</td>
+                <td>
+                    <form method="post"
+                          action="{{ url_for('dashboard_talent_delete', talent_id=t.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('이 텔런트를 삭제하시겠습니까?');">
+                        <button type="submit" class="btn-small danger"
+                                style="background:#c62828; color:#fff; border:none; border-radius:999px; padding:4px 8px; font-size:11px;">
+                            삭제
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>등록된 텔런트/팀원 정보가 없습니다.</p>
+    {% endif %}
+</div>
+
 <!-- 최근 문의 기록 -->
 <div class="card">
     <h3>문의 기록</h3>
