@@ -158,6 +158,33 @@ class NoticeComment(db.Model):
 
     user = db.relationship("User")
 
+class Goods(db.Model):
+    __tablename__ = "goods"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)         
+    price = db.Column(db.Integer, nullable=False)             
+    description = db.Column(db.Text, nullable=True)          
+    payment_url = db.Column(db.String(255), nullable=True)   
+    image_url = db.Column(db.String(255), nullable=True)     
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Talent(db.Model):
+    __tablename__ = "talents"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nickname = db.Column(db.String(50), nullable=False)    
+    team = db.Column(db.String(50), nullable=True)          
+    role = db.Column(db.String(50), nullable=True)           
+    intro = db.Column(db.Text, nullable=True)                
+    image_url = db.Column(db.String(255), nullable=True)     
+    is_active = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)            
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 # ==============================================
 # 로그인 로드
 # ==============================================
