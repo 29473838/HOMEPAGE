@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}굿즈 - ShowkerTMS{% endblock %}
+
+{% block content %}
+<h1 class="page-title">굿즈</h1>
+
+{% if goods_list %}
+    {% for g in goods_list %}
+    <div class="card">
+        <h3 style="margin-top:0;">{{ g.name }}</h3>
+
+        <p style="margin:4px 0; font-weight:600;">
+            가격: {{ "{:,}".format(g.price) }}원
+        </p>
+
+        {% if g.image_url %}
+            <div style="margin:8px 0;">
+                <img src="{{ g.image_url }}" alt="{{ g.name }}" style="max-width:100%; border-radius:10px;">
+            </div>
+        {% endif %}
+
+        {% if g.description %}
+            <p style="font-size:14px; white-space:pre-line; margin-top:6px;">
+                {{ g.description }}
+            </p>
+        {% endif %}
+
+        {% if g.payment_url %}
+            <p style="margin-top:10px;">
+                <a href="{{ g.payment_url }}" target="_blank" class="btn">
+                    결제 / 구매 페이지로 이동
+                </a>
+            </p>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <p>현재 등록된 굿즈가 없습니다.</p>
+    </div>
+{% endif %}
+{% endblock %}
